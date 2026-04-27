@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="QuestionsBank/QuestionsBank.Client/QuestionsBank.Client.csproj" />
+  <Project Path="QuestionsBank/QuestionsBank/QuestionsBank.csproj" />
+</Solution>
