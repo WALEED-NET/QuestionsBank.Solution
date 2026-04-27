@@ -1,0 +1,277 @@
+@using QuestionsBank.Models
+@using Blazorise
+
+<Card Class="mb-3 card-animate" Style="border-right: 3px solid #f97316;">
+    <CardHeader Style="background: #fff7ed;">
+        <Div Class="d-flex justify-content-between align-items-center">
+            <Badge Style="background: #ffedd5; color: #c2410c;">سؤال @Index</Badge>
+            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="OnRemove">
+                <i class="fas fa-trash"></i>
+            </button>
+        </Div>
+    </CardHeader>
+    <CardBody>
+        <Row Class="g-3 mb-3">
+            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is8.OnDesktop">
+                <Field>
+                    <FieldLabel>نص السؤال *</FieldLabel>
+                    <input type="text" class="form-control" @bind="Question.Text" placeholder="أدخل نص السؤال" />
+                </Field>
+            </Column>
+            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                <Field>
+                    <FieldLabel>نوع السؤال</FieldLabel>
+                    <select class="form-select" @bind="questionType">
+                        <option value="@QuestionType.MultipleChoice">اختيار متعدد</option>
+                        <option value="@QuestionType.TrueFalse">صح/خطأ</option>
+                        <option value="@QuestionType.FillBlank">ملء الفراغ</option>
+                        <option value="@QuestionType.Essay">مقالي</option>
+                    </select>
+                </Field>
+            </Column>
+        </Row>
+
+        <!-- Multiple Choice Options -->
+        @if (questionType == QuestionType.MultipleChoice)
+        {
+            <div class="options-section border rounded p-3 mb-3" style="background: #fafafa;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-list-ul me-1"></i>
+                        خيارات الإجابة (اختر الإجابة الصحيحة)
+                    </small>
+                    <button type="button" class="btn btn-outline-success btn-sm" @onclick="AddOption">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                @foreach (var (option, optionIndex) in Question.Options.Select((o, i) => (o, i + 1)))
+                {
+                    <div class="option-row mb-2">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <input type="radio" class="form-check-input" 
+                                       name="@($"q_{Question.Id}")" 
+                                       checked="@option.IsCorrect"
+                                       @onchange="@(() => SetCorrectOption(option))" />
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge @(option.IsCorrect ? "bg-success" : "bg-secondary")">
+                                    @GetOptionLetter(optionIndex)
+                                </span>
+                            </div>
+                            <div class="col">
+                                <input type="text"
+                                       class="form-control form-control-sm @(option.IsCorrect ? "border-success" : "")"
+                                       @bind="option.Text" 
+                                       placeholder="@($"الخيار {GetOptionLetter(optionIndex)}")" />
+                            </div>
+                            @if (Question.Options.Count > 2)
+                            {
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                            @onclick="@(() => RemoveOption(option))">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- True/False Options -->
+        @if (questionType == QuestionType.TrueFalse)
+        {
+            <div class="true-false-section border rounded p-3 mb-3" style="background: #f0fdf4;">
+                <small class="text-muted mb-3 d-block">
+                    <i class="fas fa-check-circle me-1"></i>
+                    اختر الإجابة الصحيحة
+                </small>
+                <div class="btn-group" role="group">
+                    <button type="button" 
+                            class="btn @(trueFalseAnswer == true ? "btn-success" : "btn-outline-secondary")"
+                            @onclick="@(() => SetTrueFalseAnswer(true))">
+                        <i class="fas fa-check me-1"></i>
+                        صحيح
+                    </button>
+                    <button type="button" 
+                            class="btn @(trueFalseAnswer == false ? "btn-danger" : "btn-outline-secondary")"
+                            @onclick="@(() => SetTrueFalseAnswer(false))">
+                        <i class="fas fa-times me-1"></i>
+                        خطأ
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Fill Blank -->
+        @if (questionType == QuestionType.FillBlank)
+        {
+            <div class="fill-blank-section border rounded p-3 mb-3" style="background: #eff6ff;">
+                <Field>
+                    <FieldLabel>
+                        <i class="fas fa-pencil-alt me-1"></i>
+                        الإجابة الصحيحة
+                    </FieldLabel>
+                    <input type="text" class="form-control" @bind="fillBlankAnswer" 
+                           placeholder="أدخل الإجابة الصحيحة" />
+                    <small class="text-muted">استخدم | للفصل بين الإجابات المتعددة المقبولة</small>
+                </Field>
+            </div>
+        }
+
+        <!-- Essay -->
+        @if (questionType == QuestionType.Essay)
+        {
+            <div class="essay-section border rounded p-3 mb-3" style="background: #faf5ff;">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    السؤال المقالي يتطلب تصحيحاً يدوياً
+                </div>
+            </div>
+        }
+
+        <!-- Additional Settings -->
+        <div class="mt-3 pt-3 border-top">
+            <Row Class="g-3">
+                <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+                    <Field>
+                        <FieldLabel>النقاط</FieldLabel>
+                        <input type="number" class="form-control" @bind="Question.Points" min="1" max="100" />
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+                    <Field>
+                        <FieldLabel>إجباري</FieldLabel>
+                        <select class="form-select" value="@(Question.IsRequired ? "yes" : "no")" 
+                                @onchange="@(e => Question.IsRequired = e.Value?.ToString() == "yes")">
+                            <option value="yes">نعم</option>
+                            <option value="no">لا</option>
+                        </select>
+                    </Field>
+                </Column>
+            </Row>
+        </div>
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter] public Question Question { get; set; } = new();
+    [Parameter] public int Index { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+
+    private bool? trueFalseAnswer;
+    private string fillBlankAnswer = "";
+    
+    private QuestionType questionType
+    {
+        get => Question.Type;
+        set
+        {
+            if (Question.Type != value)
+            {
+                Question.Type = value;
+                OnTypeChanged(value);
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        InitializeFromQuestion();
+    }
+    
+    private void InitializeFromQuestion()
+    {
+        // Initialize True/False from options
+        if (Question.Type == QuestionType.TrueFalse && Question.Options.Any())
+        {
+            var correctOption = Question.Options.FirstOrDefault(o => o.IsCorrect);
+            if (correctOption != null)
+            {
+                trueFalseAnswer = correctOption.Text == "صحيح";
+            }
+        }
+
+        // Initialize Fill Blank
+        if (Question.Type == QuestionType.FillBlank && Question.Options.Any())
+        {
+            fillBlankAnswer = string.Join("|", Question.Options.Select(o => o.Text));
+        }
+    }
+    
+    private void OnTypeChanged(QuestionType newType)
+    {
+        // Clear options when changing type
+        Question.Options.Clear();
+        trueFalseAnswer = null;
+        fillBlankAnswer = "";
+        
+        switch (newType)
+        {
+            case QuestionType.MultipleChoice:
+                // Add default 4 options
+                Question.Options.Add(new QuestionOption { Text = "", Order = 1 });
+                Question.Options.Add(new QuestionOption { Text = "", Order = 2 });
+                Question.Options.Add(new QuestionOption { Text = "", Order = 3 });
+                Question.Options.Add(new QuestionOption { Text = "", Order = 4 });
+                break;
+            case QuestionType.TrueFalse:
+                // Add True/False options
+                Question.Options.Add(new QuestionOption { Text = "صحيح", IsCorrect = true, Order = 1 });
+                Question.Options.Add(new QuestionOption { Text = "خطأ", IsCorrect = false, Order = 2 });
+                trueFalseAnswer = true;
+                break;
+        }
+    }
+
+    private string GetOptionLetter(int index) => index switch
+    {
+        1 => "أ",
+        2 => "ب",
+        3 => "ج",
+        4 => "د",
+        5 => "هـ",
+        6 => "و",
+        _ => index.ToString()
+    };
+
+    private void SetCorrectOption(QuestionOption option)
+    {
+        // Only one correct answer for multiple choice
+        foreach (var opt in Question.Options)
+        {
+            opt.IsCorrect = false;
+        }
+        option.IsCorrect = true;
+    }
+
+    private void AddOption()
+    {
+        if (Question.Options.Count < 6)
+        {
+            Question.Options.Add(new QuestionOption
+            {
+                Order = Question.Options.Count + 1
+            });
+        }
+    }
+
+    private void RemoveOption(QuestionOption option)
+    {
+        Question.Options.Remove(option);
+        for (int i = 0; i < Question.Options.Count; i++)
+        {
+            Question.Options[i].Order = i + 1;
+        }
+    }
+
+    private void SetTrueFalseAnswer(bool value)
+    {
+        trueFalseAnswer = value;
+        Question.Options.Clear();
+        Question.Options.Add(new QuestionOption { Text = "صحيح", IsCorrect = value, Order = 1 });
+        Question.Options.Add(new QuestionOption { Text = "خطأ", IsCorrect = !value, Order = 2 });
+    }
+}

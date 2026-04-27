@@ -1,7 +1,23 @@
 using QuestionsBank.Client.Pages;
 using QuestionsBank.Components;
+using QuestionsBank.Models;
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Blazorise services
+builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrap5Providers()
+    .AddFontAwesomeIcons();
+
+// Add LessonService
+builder.Services.AddSingleton<LessonService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

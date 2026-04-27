@@ -1,0 +1,33 @@
+<Modal @bind-Visible="@Visible">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                تأكيد الحذف
+            </ModalTitle>
+            <CloseButton Clicked="@(() => OnCancel.InvokeAsync())" />
+        </ModalHeader>
+        <ModalBody>
+            <Paragraph Class="mb-0">
+                @Message
+            </Paragraph>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@(() => OnCancel.InvokeAsync())">
+                إلغاء
+            </Button>
+            <Button Color="Color.Danger" Clicked="@(() => OnConfirm.InvokeAsync())">
+                <i class="fas fa-trash me-2"></i>
+                حذف
+            </Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public string Message { get; set; } = "هل أنت متأكد من حذف هذا العنصر؟";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

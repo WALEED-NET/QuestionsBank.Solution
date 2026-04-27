@@ -1,0 +1,24 @@
+<Card Class="stats-card h-100">
+    <CardBody Class="d-flex align-items-center">
+        <Div Class="stats-icon" Style="@($"background: {Color}15; color: {Color};")">
+            <i class="@IconClass"></i>
+        </Div>
+        <Div Class="me-3">
+            <Heading Size="HeadingSize.Is3" Margin="Margin.Is0" Style="@($"color: {Color};")">
+                @Value
+            </Heading>
+            <Paragraph Margin="Margin.Is0" Class="text-muted small">
+                @Label
+            </Paragraph>
+        </Div>
+    </CardBody>
+</Card>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "book";
+    [Parameter] public string Value { get; set; } = "0";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Color { get; set; } = "#3b82f6";
+    
+    private string IconClass => $"fas fa-{Icon}";
+}

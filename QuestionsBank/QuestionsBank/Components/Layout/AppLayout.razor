@@ -1,0 +1,50 @@
+@inherits LayoutComponentBase
+
+<div class="app-layout" dir="rtl">
+    <!-- Header -->
+    <header class="app-header">
+        <Container Fluid>
+            <Div Class="d-flex justify-content-between align-items-center py-3">
+                <Div Class="d-flex align-items-center">
+                    <div class="header-icon-wrapper me-3">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <Div>
+                        <Heading Size="HeadingSize.Is5" Margin="Margin.Is0" TextColor="TextColor.White">
+                            نظام إدارة المحتوى التعليمي
+                        </Heading>
+                        <Small Class="text-white-50">إدارة الدروس والأسئلة</Small>
+                    </Div>
+                </Div>
+                <Div Class="d-flex gap-2">
+                    <button class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </Div>
+            </Div>
+        </Container>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-content">
+        @Body
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <Container Fluid>
+            <Small Class="text-muted">
+                © 2024 نظام إدارة المحتوى التعليمي - جميع الحقوق محفوظة
+            </Small>
+        </Container>
+    </footer>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    حدث خطأ غير متوقع.
+    <a href="." class="reload">إعادة تحميل</a>
+    <span class="dismiss">🗙</span>
+</div>

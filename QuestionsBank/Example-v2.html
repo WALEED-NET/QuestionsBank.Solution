@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المحتوى التعليمي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'tajawal': ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background-color: #22c55e;
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        .nested-section {
+            position: relative;
+            margin-right: 20px;
+            padding-right: 20px;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .nested-section::before {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: 20px;
+            width: 20px;
+            height: 2px;
+            background: #e2e8f0;
+        }
+
+        .card-animate {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-transition {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .file-upload-box {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.2s;
+        }
+
+        .file-upload-box:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .toast {
+            animation: toastIn 0.3s ease;
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapse-content.open {
+            max-height: 5000px;
+        }
+
+        .badge-lesson {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-topic {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-content {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .badge-question {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Table hover */
+        .table-row:hover {
+            background: #f8fafc;
+        }
+
+        /* Page visibility */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900" id="pageTitle">إدارة الدروس</h1>
+                        <p class="text-xs text-gray-500">نظام إدارة المحتوى التعليمي</p>
+                    </div>
+                </div>
+
+                <!-- Header Actions - changes based on page -->
+                <div id="headerActions">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== PAGE 1: LESSONS LIST ==================== -->
+    <div id="listPage" class="page active">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-transition">
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900" id="totalLessons">0</p>
+                            <p class="text-sm text-gray-500">إجمالي الدروس</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900" id="activeLessons">0</p>
+                            <p class="text-sm text-gray-500">دروس نشطة</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900" id="totalTopics">0</p>
+                            <p class="text-sm text-gray-500">إجمالي المواضيع</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-900" id="totalQuestions">0</p>
+                            <p class="text-sm text-gray-500">إجمالي الأسئلة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="بحث عن درس..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                oninput="filterLessons()">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <select id="unitFilter"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        onchange="filterLessons()">
+                        <option value="">جميع الوحدات</option>
+                        <option value="1">الوحدة الأولى</option>
+                        <option value="2">الوحدة الثانية</option>
+                        <option value="3">الوحدة الثالثة</option>
+                        <option value="4">الوحدة الرابعة</option>
+                        <option value="5">الوحدة الخامسة</option>
+                    </select>
+                    <select id="statusFilter"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        onchange="filterLessons()">
+                        <option value="">جميع الحالات</option>
+                        <option value="active">نشط</option>
+                        <option value="inactive">غير نشط</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lessons Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">#</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">اسم الدرس</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">الوحدة</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">المواضيع</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">الأسئلة</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الإنشاء</th>
+                                <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lessonsTableBody" class="divide-y divide-gray-100">
+                            <!-- Lessons will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden py-16 text-center">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">لا توجد دروس</h3>
+                    <p class="text-gray-500 mb-4">ابدأ بإضافة درس جديد للنظام</p>
+                    <button onclick="navigateToAdd()"
+                        class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition inline-flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        إضافة درس جديد
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== PAGE 2: ADD/EDIT LESSON ==================== -->
+    <div id="formPage" class="page">
+        <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-transition">
+            <form id="mainForm" class="space-y-6">
+
+                <!-- LESSON SECTION -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-blue-900">بيانات الدرس</h2>
+                                <p class="text-sm text-blue-600">المعلومات الأساسية للدرس</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    اسم الدرس <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="lessonName" required
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                                    placeholder="مثال: الوحدة الأولى - مقدمة">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    الوحدة <span class="text-red-500">*</span>
+                                </label>
+                                <select id="lessonUnitId" required
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                                    <option value="">-- اختر الوحدة --</option>
+                                    <option value="1">الوحدة الأولى</option>
+                                    <option value="2">الوحدة الثانية</option>
+                                    <option value="3">الوحدة الثالثة</option>
+                                    <option value="4">الوحدة الرابعة</option>
+                                    <option value="5">الوحدة الخامسة</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">الترتيب</label>
+                                <input type="number" id="lessonOrder" min="1" value="1"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">أهداف الدرس</label>
+                                <textarea id="lessonGoals" rows="2"
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition resize-none"
+                                    placeholder="أدخل أهداف الدرس التعليمية..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">الحالة</label>
+                                <div class="flex items-center gap-3 h-[42px]">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="lessonIsActive" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="text-sm text-gray-600" id="lessonStatusText">نشط</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ملف صوتي للدرس</label>
+                                <div class="file-upload-box rounded-lg p-4 text-center cursor-pointer"
+                                    onclick="document.getElementById('lessonAudio').click()">
+                                    <input type="file" id="lessonAudio" accept="audio/*" class="hidden"
+                                        onchange="showFileName(this, 'lessonAudioName')">
+                                    <div class="flex items-center justify-center gap-3">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3">
+                                            </path>
+                                        </svg>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-600">اضغط لرفع ملف صوتي أو اسحب الملف هنا</p>
+                                            <p class="text-xs text-gray-400" id="lessonAudioName">MP3, WAV, OGG - حد
+                                                أقصى 50MB</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOPICS SECTION -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-green-50 px-6 py-4 border-b border-green-100">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-green-900">المواضيع</h2>
+                                    <p class="text-sm text-green-600">أضف المواضيع التابعة للدرس</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addTopic()"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                إضافة موضوع
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="topicsContainer" class="space-y-6">
+                            <div class="text-center py-8 text-gray-400" id="noTopicsMessage">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                                    </path>
+                                </svg>
+                                <p>لا توجد مواضيع - اضغط "إضافة موضوع" للبدء</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LESSON QUESTIONS -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-orange-50 px-6 py-4 border-b border-orange-100">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-orange-900">أسئلة الدرس</h2>
+                                    <p class="text-sm text-orange-600">أسئلة مرتبطة بالدرس مباشرة</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addLessonQuestion()"
+                                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                إضافة سؤال للدرس
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="lessonQuestionsContainer" class="space-y-4">
+                            <div class="text-center py-8 text-gray-400" id="noLessonQuestionsMessage">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                    </path>
+                                </svg>
+                                <p>لا توجد أسئلة للدرس - اضغط "إضافة سؤال للدرس" للبدء</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Footer -->
+                <div class="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="text-sm text-gray-500">
+                        <span id="summaryText">لم يتم إضافة أي عناصر بعد</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="navigateToList()"
+                            class="px-6 py-2.5 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            إلغاء
+                        </button>
+                        <button type="button" onclick="saveLesson()"
+                            class="px-8 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2 font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            حفظ الدرس
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden card-animate">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">حذف الدرس</h3>
+                <p class="text-gray-600 mb-6">هل أنت متأكد من حذف هذا الدرس؟ لا يمكن التراجع عن هذا الإجراء.</p>
+                <div class="flex gap-3 justify-center">
+                    <button onclick="closeDeleteModal()"
+                        class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        إلغاء
+                    </button>
+                    <button onclick="confirmDelete()"
+                        class="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        نعم، احذف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-4 left-4 z-50 space-y-2"></div>
+
+    <script>
+        // ==================== STATE ====================
+        let lessons = JSON.parse(localStorage.getItem('learningSystemLessons') || '[]');
+        let currentPage = 'list';
+        let editingLessonId = null;
+        let deleteTargetId = null;
+        let topicCounter = 0;
+        let contentCounter = 0;
+        let questionCounter = 0;
+        let optionCounter = 0;
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () =>
+        {
+            renderLessonsList();
+            updateStats();
+            updateHeaderActions();
+
+            document.getElementById('lessonIsActive').addEventListener('change', function ()
+            {
+                document.getElementById('lessonStatusText').textContent = this.checked ? 'نشط' : 'غير نشط';
+            });
+        });
+
+        // ==================== NAVIGATION ====================
+        function navigateToList()
+        {
+            currentPage = 'list';
+            editingLessonId = null;
+            document.getElementById('listPage').classList.add('active');
+            document.getElementById('formPage').classList.remove('active');
+            document.getElementById('pageTitle').textContent = 'إدارة الدروس';
+            updateHeaderActions();
+            renderLessonsList();
+            updateStats();
+        }
+
+        function navigateToAdd()
+        {
+            currentPage = 'add';
+            editingLessonId = null;
+            resetForm();
+            document.getElementById('listPage').classList.remove('active');
+            document.getElementById('formPage').classList.add('active');
+            document.getElementById('pageTitle').textContent = 'إضافة درس جديد';
+            updateHeaderActions();
+        }
+
+        function navigateToEdit(id)
+        {
+            currentPage = 'edit';
+            editingLessonId = id;
+            const lesson = lessons.find(l => l.id === id);
+            if (lesson)
+            {
+                loadLessonToForm(lesson);
+                document.getElementById('listPage').classList.remove('active');
+                document.getElementById('formPage').classList.add('active');
+                document.getElementById('pageTitle').textContent = 'تعديل الدرس';
+                updateHeaderActions();
+            }
+        }
+
+        function updateHeaderActions()
+        {
+            const container = document.getElementById('headerActions');
+            if (currentPage === 'list')
+            {
+                container.innerHTML = `
+                    <button onclick="navigateToAdd()" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        إضافة درس جديد
+                    </button>
+                `;
+            } else
+            {
+                container.innerHTML = `
+                    <button onclick="navigateToList()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        العودة للقائمة
+                    </button>
+                `;
+            }
+        }
+
+        // ==================== LESSONS LIST ====================
+        function renderLessonsList()
+        {
+            const tbody = document.getElementById('lessonsTableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const unitFilter = document.getElementById('unitFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let filteredLessons = lessons.filter(lesson =>
+            {
+                const matchesSearch = lesson.lesson.name.toLowerCase().includes(searchTerm);
+                const matchesUnit = !unitFilter || lesson.lesson.unitId === unitFilter;
+                const matchesStatus = !statusFilter ||
+                    (statusFilter === 'active' && lesson.lesson.isActive) ||
+                    (statusFilter === 'inactive' && !lesson.lesson.isActive);
+                return matchesSearch && matchesUnit && matchesStatus;
+            });
+
+            if (filteredLessons.length === 0)
+            {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            tbody.innerHTML = filteredLessons.map((lesson, index) =>
+            {
+                const topicsCount = lesson.topics?.length || 0;
+                const questionsCount = (lesson.topics?.reduce((sum, t) => sum + (t.questions?.length || 0), 0) || 0) + (lesson.lessonQuestions?.length || 0);
+                const unitNames = { '1': 'الأولى', '2': 'الثانية', '3': 'الثالثة', '4': 'الرابعة', '5': 'الخامسة' };
+                const date = new Date(lesson.createdAt).toLocaleDateString('ar-SA');
+
+                return `
+                    <tr class="table-row transition">
+                        <td class="px-6 py-4 text-sm text-gray-500">${index + 1}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">${lesson.lesson.name}</div>
+                            ${lesson.lesson.goals ? `<div class="text-xs text-gray-500 mt-1">${lesson.lesson.goals.substring(0, 50)}${lesson.lesson.goals.length > 50 ? '...' : ''}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="badge-lesson px-3 py-1 rounded-full text-sm">الوحدة ${unitNames[lesson.lesson.unitId] || lesson.lesson.unitId}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${topicsCount}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">${questionsCount}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${lesson.lesson.isActive ? 'status-active' : 'status-inactive'}">
+                                ${lesson.lesson.isActive ? 'نشط' : 'غير نشط'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${date}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="navigateToEdit('${lesson.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="تعديل">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="openDeleteModal('${lesson.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterLessons()
+        {
+            renderLessonsList();
+        }
+
+        function updateStats()
+        {
+            document.getElementById('totalLessons').textContent = lessons.length;
+            document.getElementById('activeLessons').textContent = lessons.filter(l => l.lesson.isActive).length;
+            document.getElementById('totalTopics').textContent = lessons.reduce((sum, l) => sum + (l.topics?.length || 0), 0);
+            document.getElementById('totalQuestions').textContent = lessons.reduce((sum, l) =>
+            {
+                const topicQuestions = l.topics?.reduce((s, t) => s + (t.questions?.length || 0), 0) || 0;
+                return sum + topicQuestions + (l.lessonQuestions?.length || 0);
+            }, 0);
+        }
+
+        // ==================== DELETE ====================
+        function openDeleteModal(id)
+        {
+            deleteTargetId = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal()
+        {
+            deleteTargetId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        function confirmDelete()
+        {
+            if (deleteTargetId)
+            {
+                lessons = lessons.filter(l => l.id !== deleteTargetId);
+                localStorage.setItem('learningSystemLessons', JSON.stringify(lessons));
+                closeDeleteModal();
+                renderLessonsList();
+                updateStats();
+                showToast('تم حذف الدرس بنجاح', 'success');
+            }
+        }
+
+        // ==================== FORM FUNCTIONS ====================
+        function resetForm()
+        {
+            document.getElementById('mainForm').reset();
+            document.getElementById('lessonIsActive').checked = true;
+            document.getElementById('lessonStatusText').textContent = 'نشط';
+            document.getElementById('topicsContainer').innerHTML = `
+                <div class="text-center py-8 text-gray-400" id="noTopicsMessage">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    <p>لا توجد مواضيع - اضغط "إضافة موضوع" للبدء</p>
+                </div>
+            `;
+            document.getElementById('lessonQuestionsContainer').innerHTML = `
+                <div class="text-center py-8 text-gray-400" id="noLessonQuestionsMessage">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p>لا توجد أسئلة للدرس - اضغط "إضافة سؤال للدرس" للبدء</p>
+                </div>
+            `;
+            topicCounter = 0;
+            contentCounter = 0;
+            questionCounter = 0;
+            optionCounter = 0;
+            updateSummary();
+        }
+
+        function loadLessonToForm(lessonData)
+        {
+            resetForm();
+
+            document.getElementById('lessonName').value = lessonData.lesson.name || '';
+            document.getElementById('lessonUnitId').value = lessonData.lesson.unitId || '';
+            document.getElementById('lessonOrder').value = lessonData.lesson.order || 1;
+            document.getElementById('lessonGoals').value = lessonData.lesson.goals || '';
+            document.getElementById('lessonIsActive').checked = lessonData.lesson.isActive !== false;
+            document.getElementById('lessonStatusText').textContent = lessonData.lesson.isActive !== false ? 'نشط' : 'غير نشط';
+
+            // Load topics
+            if (lessonData.topics && lessonData.topics.length > 0)
+            {
+                document.getElementById('noTopicsMessage')?.remove();
+                lessonData.topics.forEach(topic =>
+                {
+                    addTopic(topic);
+                });
+            }
+
+            // Load lesson questions
+            if (lessonData.lessonQuestions && lessonData.lessonQuestions.length > 0)
+            {
+                document.getElementById('noLessonQuestionsMessage')?.remove();
+                lessonData.lessonQuestions.forEach(question =>
+                {
+                    addLessonQuestion(question);
+                });
+            }
+
+            updateSummary();
+        }
+
+        function saveLesson()
+        {
+            const form = document.getElementById('mainForm');
+            if (!form.checkValidity())
+            {
+                form.reportValidity();
+                return;
+            }
+
+            const data = collectFormData();
+
+            if (!data.lesson.name)
+            {
+                showToast('يرجى إدخال اسم الدرس', 'error');
+                return;
+            }
+
+            if (editingLessonId)
+            {
+                // Update existing
+                const index = lessons.findIndex(l => l.id === editingLessonId);
+                if (index !== -1)
+                {
+                    data.id = editingLessonId;
+                    data.createdAt = lessons[index].createdAt;
+                    data.updatedAt = new Date().toISOString();
+                    lessons[index] = data;
+                }
+                showToast('تم تحديث الدرس بنجاح!', 'success');
+            } else
+            {
+                // Add new
+                data.id = Date.now().toString();
+                data.createdAt = new Date().toISOString();
+                lessons.push(data);
+                showToast('تم إضافة الدرس بنجاح!', 'success');
+            }
+
+            localStorage.setItem('learningSystemLessons', JSON.stringify(lessons));
+
+            setTimeout(() =>
+            {
+                navigateToList();
+            }, 500);
+        }
+
+        // ==================== TOPIC FUNCTIONS ====================
+        function addTopic(existingData = null)
+        {
+            topicCounter++;
+            const container = document.getElementById('topicsContainer');
+            document.getElementById('noTopicsMessage')?.remove();
+
+            const topicHtml = `
+                <div class="topic-card card-animate border border-green-200 rounded-xl overflow-hidden" data-topic-id="${topicCounter}">
+                    <div class="bg-green-50 px-5 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="badge-topic px-3 py-1 rounded-full text-sm font-medium">موضوع ${topicCounter}</span>
+                            <button type="button" onclick="toggleTopicCollapse(${topicCounter})" class="text-gray-500 hover:text-gray-700">
+                                <svg class="w-5 h-5 transform transition" id="topicArrow${topicCounter}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <button type="button" onclick="removeTopic(${topicCounter})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="حذف الموضوع">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="collapse-content open p-5 space-y-5" id="topicContent${topicCounter}">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">اسم الموضوع <span class="text-red-500">*</span></label>
+                                <input type="text" name="topic_${topicCounter}_name" required value="${existingData?.name || ''}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm"
+                                       placeholder="أدخل اسم الموضوع">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الترتيب</label>
+                                <input type="number" name="topic_${topicCounter}_order" min="1" value="${existingData?.order || topicCounter}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الحالة</label>
+                                <div class="flex items-center gap-3 h-[38px]">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="topic_${topicCounter}_active" ${existingData?.isActive !== false ? 'checked' : ''} onchange="updateToggleText(this)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="text-sm text-gray-600 toggle-text">${existingData?.isActive !== false ? 'نشط' : 'غير نشط'}</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">الوصف</label>
+                                <textarea name="topic_${topicCounter}_description" rows="2"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition resize-none text-sm"
+                                          placeholder="وصف مختصر للموضوع...">${existingData?.description || ''}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="nested-section">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-purple-700 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    المحتوى التعليمي
+                                </h4>
+                                <button type="button" onclick="addContent(${topicCounter})" class="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    إضافة محتوى
+                                </button>
+                            </div>
+                            <div id="contentsContainer_${topicCounter}" class="space-y-3">
+                                <p class="text-xs text-gray-400 text-center py-4">لا يوجد محتوى - اضغط إضافة محتوى</p>
+                            </div>
+                        </div>
+
+                        <div class="nested-section">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-orange-700 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    أسئلة الموضوع
+                                </h4>
+                                <button type="button" onclick="addTopicQuestion(${topicCounter})" class="px-3 py-1.5 text-xs bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    إضافة سؤال
+                                </button>
+                            </div>
+                            <div id="topicQuestionsContainer_${topicCounter}" class="space-y-3">
+                                <p class="text-xs text-gray-400 text-center py-4">لا توجد أسئلة - اضغط إضافة سؤال</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', topicHtml);
+
+            // Load existing contents and questions if editing
+            if (existingData)
+            {
+                const currentTopicId = topicCounter;
+                if (existingData.contents && existingData.contents.length > 0)
+                {
+                    const contentContainer = document.getElementById(`contentsContainer_${currentTopicId}`);
+                    contentContainer.querySelector('p.text-gray-400')?.remove();
+                    existingData.contents.forEach(content => addContent(currentTopicId, content));
+                }
+                if (existingData.questions && existingData.questions.length > 0)
+                {
+                    const questionContainer = document.getElementById(`topicQuestionsContainer_${currentTopicId}`);
+                    questionContainer.querySelector('p.text-gray-400')?.remove();
+                    existingData.questions.forEach(question => addTopicQuestion(currentTopicId, question));
+                }
+            }
+
+            updateSummary();
+        }
+
+        function removeTopic(id)
+        {
+            const card = document.querySelector(`[data-topic-id="${id}"]`);
+            if (card)
+            {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(-10px)';
+                setTimeout(() =>
+                {
+                    card.remove();
+                    updateSummary();
+                    checkEmptyContainers();
+                }, 200);
+            }
+        }
+
+        function toggleTopicCollapse(id)
+        {
+            const content = document.getElementById(`topicContent${id}`);
+            const arrow = document.getElementById(`topicArrow${id}`);
+            content.classList.toggle('open');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        // ==================== CONTENT FUNCTIONS ====================
+        function addContent(topicId, existingData = null)
+        {
+            contentCounter++;
+            const container = document.getElementById(`contentsContainer_${topicId}`);
+            container.querySelector('p.text-gray-400')?.remove();
+
+            const contentHtml = `
+                <div class="content-card card-animate bg-purple-50 border border-purple-200 rounded-lg p-4" data-content-id="${contentCounter}">
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="badge-content px-2 py-0.5 rounded text-xs font-medium">محتوى ${contentCounter}</span>
+                        <button type="button" onclick="removeContent(${contentCounter})" class="p-1 text-red-500 hover:bg-red-100 rounded transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">العنوان <span class="text-red-500">*</span></label>
+                            <input type="text" name="content_${contentCounter}_title" required value="${existingData?.title || ''}"
+                                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                                   placeholder="عنوان المحتوى">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">الترتيب</label>
+                            <input type="number" name="content_${contentCounter}_order" min="1" value="${existingData?.order || contentCounter}"
+                                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">المحتوى <span class="text-red-500">*</span></label>
+                            <textarea name="content_${contentCounter}_body" rows="3" required
+                                      class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition resize-none"
+                                      placeholder="محتوى الدرس التعليمي...">${existingData?.body || ''}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">رابط فيديو</label>
+                            <input type="url" name="content_${contentCounter}_video" value="${existingData?.videoUrl || ''}"
+                                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                                   placeholder="https://youtube.com/...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">ملف صوتي</label>
+                            <input type="file" name="content_${contentCounter}_audio" accept="audio/*"
+                                   class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', contentHtml);
+            updateSummary();
+        }
+
+        function removeContent(id)
+        {
+            const card = document.querySelector(`[data-content-id="${id}"]`);
+            if (card) card.remove();
+            updateSummary();
+        }
+
+        // ==================== QUESTION FUNCTIONS ====================
+        function createQuestionHtml(questionId, existingData = null)
+        {
+            const typeOptions = [
+                { value: 'multiple_choice', label: 'اختيار متعدد' },
+                { value: 'true_false', label: 'صح/خطأ' },
+                { value: 'fill_blank', label: 'ملء الفراغ' },
+                { value: 'essay', label: 'مقالي' }
+            ];
+
+            return `
+                <div class="question-card card-animate bg-orange-50 border border-orange-200 rounded-lg p-4" data-question-id="${questionId}">
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="badge-question px-2 py-0.5 rounded text-xs font-medium">سؤال ${questionId}</span>
+                        <button type="button" onclick="removeQuestion(${questionId})" class="p-1 text-red-500 hover:bg-red-100 rounded transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">نص السؤال <span class="text-red-500">*</span></label>
+                            <input type="text" name="question_${questionId}_text" required value="${existingData?.text || ''}"
+                                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                                   placeholder="أدخل نص السؤال">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">نوع السؤال</label>
+                            <select name="question_${questionId}_type" onchange="handleQuestionType(${questionId}, this.value)"
+                                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition">
+                                ${typeOptions.map(opt => `<option value="${opt.value}" ${existingData?.type === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">شرح إضافي</label>
+                            <input type="text" name="question_${questionId}_body" value="${existingData?.body || ''}"
+                                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                                   placeholder="شرح للسؤال (اختياري)">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">الحالة</label>
+                            <div class="flex items-center gap-2 h-[30px]">
+                                <label class="toggle-switch" style="transform: scale(0.85);">
+                                    <input type="checkbox" name="question_${questionId}_active" ${existingData?.isActive !== false ? 'checked' : ''} onchange="updateToggleText(this)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="text-xs text-gray-600 toggle-text">${existingData?.isActive !== false ? 'نشط' : 'غير نشط'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="options-section border-t border-orange-200 pt-3 ${existingData?.type === 'essay' || existingData?.type === 'fill_blank' ? 'hidden' : ''}" id="optionsSection_${questionId}">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="text-xs font-semibold text-pink-700 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                الخيارات والإجابات
+                            </h5>
+                            <button type="button" onclick="addOption(${questionId})" class="px-2 py-1 text-xs bg-pink-100 text-pink-700 rounded hover:bg-pink-200 transition flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                إضافة خيار
+                            </button>
+                        </div>
+                        <div id="optionsContainer_${questionId}" class="space-y-2">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createOptionHtml(optionId, questionId, letter, existingData = null, isFirst = false)
+        {
+            return `
+                <div class="option-item flex items-center gap-2 bg-white p-2 rounded border border-pink-100" data-option-id="${optionId}">
+                    <span class="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center text-xs font-bold text-pink-700">${letter}</span>
+                    <input type="text" name="option_${optionId}_text" required value="${existingData?.text || ''}"
+                           class="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                           placeholder="نص الخيار">
+                    <label class="flex items-center gap-1 cursor-pointer whitespace-nowrap">
+                        <input type="radio" name="correct_${questionId}" value="${optionId}" ${existingData?.isCorrect || isFirst ? 'checked' : ''}
+                               class="w-4 h-4 text-green-600 focus:ring-green-500">
+                        <span class="text-xs text-gray-600">صحيح</span>
+                    </label>
+                    <button type="button" onclick="removeOption(${optionId})" class="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }
+
+        function addTopicQuestion(topicId, existingData = null)
+        {
+            questionCounter++;
+            const container = document.getElementById(`topicQuestionsContainer_${topicId}`);
+            container.querySelector('p.text-gray-400')?.remove();
+            container.insertAdjacentHTML('beforeend', createQuestionHtml(questionCounter, existingData));
+
+            // Add options
+            const optionsContainer = document.getElementById(`optionsContainer_${questionCounter}`);
+            const letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+
+            if (existingData?.options && existingData.options.length > 0)
+            {
+                existingData.options.forEach((opt, i) =>
+                {
+                    optionCounter++;
+                    optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, letters[i] || (i + 1), opt));
+                });
+            } else
+            {
+                optionCounter++;
+                optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, 'أ', null, true));
+                optionCounter++;
+                optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, 'ب'));
+            }
+
+            updateSummary();
+        }
+
+        function addLessonQuestion(existingData = null)
+        {
+            questionCounter++;
+            const container = document.getElementById('lessonQuestionsContainer');
+            document.getElementById('noLessonQuestionsMessage')?.remove();
+            container.insertAdjacentHTML('beforeend', createQuestionHtml(questionCounter, existingData));
+
+            // Add options
+            const optionsContainer = document.getElementById(`optionsContainer_${questionCounter}`);
+            const letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+
+            if (existingData?.options && existingData.options.length > 0)
+            {
+                existingData.options.forEach((opt, i) =>
+                {
+                    optionCounter++;
+                    optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, letters[i] || (i + 1), opt));
+                });
+            } else
+            {
+                optionCounter++;
+                optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, 'أ', null, true));
+                optionCounter++;
+                optionsContainer.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionCounter, 'ب'));
+            }
+
+            updateSummary();
+        }
+
+        function addOption(questionId)
+        {
+            optionCounter++;
+            const container = document.getElementById(`optionsContainer_${questionId}`);
+            const optionCount = container.querySelectorAll('.option-item').length;
+            const letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+            container.insertAdjacentHTML('beforeend', createOptionHtml(optionCounter, questionId, letters[optionCount] || (optionCount + 1)));
+            updateSummary();
+        }
+
+        function removeOption(id)
+        {
+            const option = document.querySelector(`[data-option-id="${id}"]`);
+            if (option) option.remove();
+            updateSummary();
+        }
+
+        function removeQuestion(id)
+        {
+            const card = document.querySelector(`[data-question-id="${id}"]`);
+            if (card) card.remove();
+            updateSummary();
+            checkEmptyContainers();
+        }
+
+        function handleQuestionType(questionId, type)
+        {
+            const optionsSection = document.getElementById(`optionsSection_${questionId}`);
+            if (type === 'essay' || type === 'fill_blank')
+            {
+                optionsSection.classList.add('hidden');
+            } else
+            {
+                optionsSection.classList.remove('hidden');
+            }
+        }
+
+        // ==================== UTILITIES ====================
+        function updateToggleText(checkbox)
+        {
+            const textSpan = checkbox.closest('.flex').querySelector('.toggle-text');
+            if (textSpan) textSpan.textContent = checkbox.checked ? 'نشط' : 'غير نشط';
+        }
+
+        function showFileName(input, targetId)
+        {
+            const target = document.getElementById(targetId);
+            if (input.files && input.files[0])
+            {
+                target.textContent = input.files[0].name;
+                target.classList.add('text-primary-600', 'font-medium');
+            }
+        }
+
+        function updateSummary()
+        {
+            const topics = document.querySelectorAll('.topic-card').length;
+            const contents = document.querySelectorAll('.content-card').length;
+            const questions = document.querySelectorAll('.question-card').length;
+            const options = document.querySelectorAll('.option-item').length;
+
+            let summary = [];
+            if (topics > 0) summary.push(`${topics} موضوع`);
+            if (contents > 0) summary.push(`${contents} محتوى`);
+            if (questions > 0) summary.push(`${questions} سؤال`);
+            if (options > 0) summary.push(`${options} خيار`);
+
+            document.getElementById('summaryText').textContent =
+                summary.length > 0 ? summary.join(' • ') : 'لم يتم إضافة أي عناصر بعد';
+        }
+
+        function checkEmptyContainers()
+        {
+            const topicsContainer = document.getElementById('topicsContainer');
+            if (!topicsContainer.querySelector('.topic-card'))
+            {
+                topicsContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-400" id="noTopicsMessage">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <p>لا توجد مواضيع - اضغط "إضافة موضوع" للبدء</p>
+                    </div>
+                `;
+            }
+
+            const lessonQContainer = document.getElementById('lessonQuestionsContainer');
+            if (!lessonQContainer.querySelector('.question-card'))
+            {
+                lessonQContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-400" id="noLessonQuestionsMessage">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p>لا توجد أسئلة للدرس</p>
+                    </div>
+                `;
+            }
+        }
+
+        function collectFormData()
+        {
+            const data = {
+                lesson: {
+                    name: document.getElementById('lessonName').value,
+                    unitId: document.getElementById('lessonUnitId').value,
+                    order: document.getElementById('lessonOrder').value,
+                    goals: document.getElementById('lessonGoals').value,
+                    isActive: document.getElementById('lessonIsActive').checked
+                },
+                topics: [],
+                lessonQuestions: []
+            };
+
+            document.querySelectorAll('.topic-card').forEach(topicCard =>
+            {
+                const topicId = topicCard.dataset.topicId;
+                const topic = {
+                    name: topicCard.querySelector(`[name="topic_${topicId}_name"]`)?.value,
+                    order: topicCard.querySelector(`[name="topic_${topicId}_order"]`)?.value,
+                    description: topicCard.querySelector(`[name="topic_${topicId}_description"]`)?.value,
+                    isActive: topicCard.querySelector(`[name="topic_${topicId}_active"]`)?.checked,
+                    contents: [],
+                    questions: []
+                };
+
+                const contentsContainer = topicCard.querySelector(`[id^="contentsContainer_"]`);
+                if (contentsContainer)
+                {
+                    contentsContainer.querySelectorAll('.content-card').forEach(contentCard =>
+                    {
+                        const contentId = contentCard.dataset.contentId;
+                        topic.contents.push({
+                            title: contentCard.querySelector(`[name="content_${contentId}_title"]`)?.value,
+                            order: contentCard.querySelector(`[name="content_${contentId}_order"]`)?.value,
+                            body: contentCard.querySelector(`[name="content_${contentId}_body"]`)?.value,
+                            videoUrl: contentCard.querySelector(`[name="content_${contentId}_video"]`)?.value
+                        });
+                    });
+                }
+
+                const questionsContainer = topicCard.querySelector(`[id^="topicQuestionsContainer_"]`);
+                if (questionsContainer)
+                {
+                    questionsContainer.querySelectorAll('.question-card').forEach(questionCard =>
+                    {
+                        topic.questions.push(collectQuestionData(questionCard));
+                    });
+                }
+
+                data.topics.push(topic);
+            });
+
+            document.querySelectorAll('#lessonQuestionsContainer .question-card').forEach(questionCard =>
+            {
+                data.lessonQuestions.push(collectQuestionData(questionCard));
+            });
+
+            return data;
+        }
+
+        function collectQuestionData(questionCard)
+        {
+            const questionId = questionCard.dataset.questionId;
+            const question = {
+                text: questionCard.querySelector(`[name="question_${questionId}_text"]`)?.value,
+                type: questionCard.querySelector(`[name="question_${questionId}_type"]`)?.value,
+                body: questionCard.querySelector(`[name="question_${questionId}_body"]`)?.value,
+                isActive: questionCard.querySelector(`[name="question_${questionId}_active"]`)?.checked,
+                options: []
+            };
+
+            const optionsContainer = questionCard.querySelector(`[id="optionsContainer_${questionId}"]`);
+            if (optionsContainer)
+            {
+                const correctValue = questionCard.querySelector(`[name="correct_${questionId}"]:checked`)?.value;
+                optionsContainer.querySelectorAll('.option-item').forEach(optionItem =>
+                {
+                    const optionId = optionItem.dataset.optionId;
+                    const textInput = optionItem.querySelector(`[name="option_${optionId}_text"]`);
+                    question.options.push({
+                        text: textInput?.value || '',
+                        isCorrect: correctValue === optionId
+                    });
+                });
+            }
+
+            return question;
+        }
+
+        function showToast(message, type = 'info')
+        {
+            const container = document.getElementById('toastContainer');
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500', info: 'bg-blue-500' };
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
+                info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast flex items-center gap-3 px-4 py-3 ${colors[type]} text-white rounded-lg shadow-lg`;
+            toast.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[type]}</svg><span>${message}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() =>
+            {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('deleteModal').addEventListener('click', function (e)
+        {
+            if (e.target === this) closeDeleteModal();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,414 @@
+@page "/test"
+@rendermode InteractiveServer
+
+<PageTitle>اختبار Blazorise</PageTitle>
+
+<Container Fluid Class="py-4 page-transition">
+    
+    <!-- Header -->
+    <Row Class="mb-4">
+        <Column>
+            <Heading Size="HeadingSize.Is2" Class="text-primary mb-2">
+                <Icon Name="@("fa-flask")" Class="me-2" />
+                اختبار مكونات Blazorise
+            </Heading>
+            <Text TextColor="TextColor.Muted">هذه الصفحة للتأكد من عمل جميع المكونات بشكل صحيح</Text>
+        </Column>
+    </Row>
+
+    <!-- Buttons Test -->
+    <Card Class="mb-4 card-animate">
+        <CardHeader Background="Background.Primary" TextColor="TextColor.White">
+            <Icon Name="@("fa-hand-pointer")" Class="me-2" />
+            اختبار الأزرار (Buttons)
+        </CardHeader>
+        <CardBody>
+            <Div Class="d-flex flex-wrap gap-2 mb-3">
+                <Button Color="Color.Primary" Clicked="@(() => ShowMessage("زر أساسي"))">
+                    <Icon Name="IconName.Star" Class="me-1" /> أساسي
+                </Button>
+                <Button Color="Color.Success" Clicked="@(() => ShowMessage("زر نجاح"))">
+                    <Icon Name="@("fa-check")" Class="me-1" /> نجاح
+                </Button>
+                <Button Color="Color.Warning" Clicked="@(() => ShowMessage("زر تحذير"))">
+                    <Icon Name="@("fa-exclamation-triangle")" Class="me-1" /> تحذير
+                </Button>
+                <Button Color="Color.Danger" Clicked="@(() => ShowMessage("زر خطر"))">
+                    <Icon Name="@("fa-times")" Class="me-1" /> خطر
+                </Button>
+                <Button Color="Color.Info">
+                    <Icon Name="@("fa-info-circle")" Class="me-1" /> معلومات
+                </Button>
+                <Button Color="Color.Secondary" Outline>زر محدد</Button>
+            </Div>
+            <Alert Color="Color.Success" Visible>
+                <Icon Name="@("fa-check-circle")" Class="me-2" />
+                إذا ظهرت الأزرار بالألوان الصحيحة والأيقونات، فإن Blazorise يعمل! ✓
+            </Alert>
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <Alert Color="Color.Info" Visible Class="mt-3">
+                    <strong>آخر رسالة:</strong> @message
+                </Alert>
+            }
+        </CardBody>
+    </Card>
+
+    <!-- Stats Cards Test -->
+    <Row Class="mb-4">
+        <Column ColumnSize="ColumnSize.Is3">
+            <Card Class="stat-card card-animate h-100" Style="border-right: 4px solid #3b82f6;">
+                <CardBody>
+                    <Div Class="d-flex align-items-center gap-3">
+                        <Div Class="rounded-3 p-3" Style="background: #dbeafe;">
+                            <Icon Name="@("fa-book")" IconSize="IconSize.Large" TextColor="TextColor.Primary" />
+                        </Div>
+                        <Div>
+                            <Heading Size="HeadingSize.Is3" Class="mb-0">15</Heading>
+                            <Text TextColor="TextColor.Muted">إجمالي الدروس</Text>
+                        </Div>
+                    </Div>
+                </CardBody>
+            </Card>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3">
+            <Card Class="stat-card card-animate h-100" Style="border-right: 4px solid #22c55e;">
+                <CardBody>
+                    <Div Class="d-flex align-items-center gap-3">
+                        <Div Class="rounded-3 p-3" Style="background: #dcfce7;">
+                            <Icon Name="@("fa-check-circle")" IconSize="IconSize.Large" TextColor="TextColor.Success" />
+                        </Div>
+                        <Div>
+                            <Heading Size="HeadingSize.Is3" Class="mb-0">12</Heading>
+                            <Text TextColor="TextColor.Muted">دروس نشطة</Text>
+                        </Div>
+                    </Div>
+                </CardBody>
+            </Card>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3">
+            <Card Class="stat-card card-animate h-100" Style="border-right: 4px solid #a855f7;">
+                <CardBody>
+                    <Div Class="d-flex align-items-center gap-3">
+                        <Div Class="rounded-3 p-3" Style="background: #f3e8ff;">
+                            <Icon Name="@("fa-tags")" IconSize="IconSize.Large" Style="color: #a855f7;" />
+                        </Div>
+                        <Div>
+                            <Heading Size="HeadingSize.Is3" Class="mb-0">45</Heading>
+                            <Text TextColor="TextColor.Muted">إجمالي المواضيع</Text>
+                        </Div>
+                    </Div>
+                </CardBody>
+            </Card>
+        </Column>
+        <Column ColumnSize="ColumnSize.Is3">
+            <Card Class="stat-card card-animate h-100" Style="border-right: 4px solid #f97316;">
+                <CardBody>
+                    <Div Class="d-flex align-items-center gap-3">
+                        <Div Class="rounded-3 p-3" Style="background: #ffedd5;">
+                            <Icon Name="@("fa-question-circle")" IconSize="IconSize.Large" Style="color: #f97316;" />
+                        </Div>
+                        <Div>
+                            <Heading Size="HeadingSize.Is3" Class="mb-0">120</Heading>
+                            <Text TextColor="TextColor.Muted">إجمالي الأسئلة</Text>
+                        </Div>
+                    </Div>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+
+    <!-- Form Controls Test -->
+    <Card Class="mb-4 card-animate">
+        <CardHeader Background="Background.Success" TextColor="TextColor.White">
+            <Icon Name="@("fa-edit")" Class="me-2" />
+            اختبار عناصر الإدخال (Form Controls)
+        </CardHeader>
+        <CardBody>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Field>
+                        <FieldLabel>حقل نصي</FieldLabel>
+                        <input type="text" class="form-control" placeholder="أدخل نص هنا..." @bind="testText" />
+                        <FieldHelp>القيمة: @testText</FieldHelp>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Field>
+                        <FieldLabel>قائمة منسدلة</FieldLabel>
+                        <select class="form-select" @bind="selectedUnit">
+                            <option value="">-- اختر الوحدة --</option>
+                            <option value="1">الوحدة الأولى</option>
+                            <option value="2">الوحدة الثانية</option>
+                            <option value="3">الوحدة الثالثة</option>
+                        </select>
+                        <FieldHelp>المحدد: @(string.IsNullOrEmpty(selectedUnit) ? "لا شيء" : $"الوحدة {selectedUnit}")
+                        </FieldHelp>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Field>
+                        <FieldLabel>رقم</FieldLabel>
+                        <input type="number" class="form-control" min="1" max="100" @bind="testNumber" />
+                        <FieldHelp>القيمة: @testNumber</FieldHelp>
+                    </Field>
+                </Column>
+            </Row>
+            <Row>
+                <Column ColumnSize="ColumnSize.Is6">
+                    <Field>
+                        <FieldLabel>حقل نص متعدد الأسطر</FieldLabel>
+                        <textarea class="form-control" rows="3" placeholder="أدخل وصفاً مفصلاً..."
+                                  @bind="testMemo"></textarea>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is6">
+                    <Field>
+                        <FieldLabel>مفتاح تبديل (Switch)</FieldLabel>
+                        <Div Class="form-check form-switch pt-2">
+                            <input class="form-check-input" type="checkbox" role="switch" @bind="isActive">
+                            <label class="form-check-label">@(isActive ? "نشط" : "غير نشط")</label>
+                        </Div>
+                    </Field>
+                    <Field Class="mt-3">
+                        <FieldLabel>خانات اختيار (Checkboxes)</FieldLabel>
+                        <Div Class="form-check">
+                            <input class="form-check-input" type="checkbox" @bind="check1">
+                            <label class="form-check-label">الخيار الأول</label>
+                        </Div>
+                        <Div Class="form-check">
+                            <input class="form-check-input" type="checkbox" @bind="check2">
+                            <label class="form-check-label">الخيار الثاني</label>
+                        </Div>
+                    </Field>
+                </Column>
+            </Row>
+        </CardBody>
+    </Card>
+
+    <!-- Table Test -->
+    <Card Class="mb-4 card-animate">
+        <CardHeader Background="Background.Info" TextColor="TextColor.White">
+            <Icon Name="@("fa-table")" Class="me-2" />
+            اختبار الجداول (Tables)
+        </CardHeader>
+        <CardBody Padding="Padding.Is0">
+            <Table Striped Hoverable FullWidth>
+                <TableHeader ThemeContrast="ThemeContrast.Light">
+                    <TableRow>
+                        <TableHeaderCell>#</TableHeaderCell>
+                        <TableHeaderCell>اسم الدرس</TableHeaderCell>
+                        <TableHeaderCell>الوحدة</TableHeaderCell>
+                        <TableHeaderCell>المواضيع</TableHeaderCell>
+                        <TableHeaderCell>الحالة</TableHeaderCell>
+                        <TableHeaderCell TextAlignment="TextAlignment.Center">الإجراءات</TableHeaderCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    @foreach (var (lesson, index) in sampleLessons.Select((l, i) => (l, i + 1)))
+                    {
+                        <TableRow>
+                            <TableRowCell>@index</TableRowCell>
+                            <TableRowCell>
+                                <Text TextWeight="TextWeight.SemiBold">@lesson.Name</Text>
+                            </TableRowCell>
+                            <TableRowCell>
+                                <Badge Color="Color.Primary">@lesson.Unit</Badge>
+                            </TableRowCell>
+                            <TableRowCell>@lesson.Topics</TableRowCell>
+                            <TableRowCell>
+                                <Badge Color="@(lesson.IsActive? Color.Success: Color.Danger)">
+                                    @(lesson.IsActive ? "نشط" : "غير نشط")
+                                </Badge>
+                            </TableRowCell>
+                            <TableRowCell TextAlignment="TextAlignment.Center">
+                                <Buttons>
+                                    <Button Color="Color.Primary" Size="Size.Small" Outline>
+                                        <Icon Name="@("fa-edit")" />
+                                    </Button>
+                                    <Button Color="Color.Danger" Size="Size.Small" Outline
+                                            Clicked="@(() => ShowDeleteModal(lesson.Name))">
+                                        <Icon Name="@("fa-trash")" />
+                                    </Button>
+                                </Buttons>
+                            </TableRowCell>
+                        </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        </CardBody>
+    </Card>
+
+    <!-- Modal Test -->
+    <Card Class="mb-4 card-animate">
+        <CardHeader Background="Background.Warning" TextColor="TextColor.Dark">
+            <Icon Name="@("fa-window-maximize")" Class="me-2" />
+            اختبار النوافذ المنبثقة (Modals)
+        </CardHeader>
+        <CardBody>
+            <Button Color="Color.Primary" Clicked="@(() => modalVisible = true)">
+                <Icon Name="@("fa-plus")" Class="me-1" /> فتح Modal
+            </Button>
+            <Button Color="Color.Danger" Clicked="@(() => deleteModalVisible = true)" Class="ms-2">
+                <Icon Name="@("fa-trash")" Class="me-1" /> Modal تأكيد الحذف
+            </Button>
+        </CardBody>
+    </Card>
+
+    <!-- Icons Test -->
+    <Card Class="mb-4 card-animate">
+        <CardHeader Background="Background.Secondary" TextColor="TextColor.White">
+            <Icon Name="@("fa-icons")" Class="me-2" />
+            اختبار الأيقونات (FontAwesome Icons)
+        </CardHeader>
+        <CardBody>
+            <Div Class="d-flex flex-wrap gap-4">
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-home")" IconSize="IconSize.x2" TextColor="TextColor.Primary" />
+                    <Div><small>Home</small></Div>
+                </Div>
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-user")" IconSize="IconSize.x2" TextColor="TextColor.Success" />
+                    <Div><small>User</small></Div>
+                </Div>
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-cog")" IconSize="IconSize.x2" TextColor="TextColor.Warning" />
+                    <Div><small>Settings</small></Div>
+                </Div>
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-search")" IconSize="IconSize.x2" TextColor="TextColor.Info" />
+                    <Div><small>Search</small></Div>
+                </Div>
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-heart")" IconSize="IconSize.x2" TextColor="TextColor.Danger" />
+                    <Div><small>Heart</small></Div>
+                </Div>
+                <Div Class="text-center p-3 border rounded">
+                    <Icon Name="@("fa-book")" IconSize="IconSize.x2" TextColor="TextColor.Primary" />
+                    <Div><small>Book</small></Div>
+                </Div>
+            </Div>
+        </CardBody>
+    </Card>
+
+    <!-- Summary -->
+    <Alert Color="Color.Info" Visible>
+        <AlertMessage>
+            <Icon Name="@("fa-info-circle")" Class="me-2" />
+            ملخص الاختبار
+        </AlertMessage>
+        <AlertDescription>
+            إذا كانت جميع المكونات أعلاه تظهر وتعمل بشكل صحيح، فإن <strong>Blazorise</strong> مُعد بشكل سليم!
+            <br />
+            يمكنك الآن البدء في بناء صفحات المشروع الفعلية.
+        </AlertDescription>
+    </Alert>
+
+</Container>
+
+<!-- Standard Modal -->
+<Modal @bind-Visible="modalVisible">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>
+                <Icon Name="@("fa-info")" Class="me-2" TextColor="TextColor.Primary" />
+                نافذة منبثقة تجريبية
+            </ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Paragraph>
+                هذه نافذة منبثقة تجريبية للتأكد من عمل مكون Modal في Blazorise.
+            </Paragraph>
+            <Paragraph>
+                يمكنك إضافة أي محتوى هنا: نماذج، جداول، صور، إلخ.
+            </Paragraph>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@(() => modalVisible = false)">إغلاق</Button>
+            <Button Color="Color.Primary" Clicked="@(() => { modalVisible = false; ShowMessage("تم الحفظ!"); })">
+                <Icon Name="@("fa-check")" Class="me-1" /> حفظ
+            </Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<!-- Delete Confirmation Modal -->
+<Modal @bind-Visible="deleteModalVisible">
+    <ModalContent Centered Size="ModalSize.Small">
+        <ModalBody TextAlignment="TextAlignment.Center" Padding="Padding.Is5">
+            <Div Class="mb-4">
+                <Div Class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                     Style="width: 80px; height: 80px;">
+                    <Icon Name="@("fa-trash")" IconSize="IconSize.x2" TextColor="TextColor.Danger" />
+                </Div>
+            </Div>
+            <Heading Size="HeadingSize.Is4" Class="mb-3">حذف الدرس</Heading>
+            <Paragraph TextColor="TextColor.Muted">
+                هل أنت متأكد من حذف الدرس <strong>"@deleteTargetName"</strong>؟
+                <br />
+                لا يمكن التراجع عن هذا الإجراء.
+            </Paragraph>
+            <Div Class="d-flex gap-3 justify-content-center mt-4">
+                <Button Color="Color.Secondary" Clicked="@(() => deleteModalVisible = false)">إلغاء</Button>
+                <Button Color="Color.Danger" Clicked="@ConfirmDelete">
+                    <Icon Name="@("fa-trash")" Class="me-1" /> نعم، احذف
+                </Button>
+            </Div>
+        </ModalBody>
+    </ModalContent>
+</Modal>
+
+@code {
+    // Form test values
+    private string testText = "";
+    private string selectedUnit = "";
+    private int testNumber = 1;
+    private string testMemo = "";
+    private bool isActive = true;
+    private bool check1 = false;
+    private bool check2 = true;
+    
+    // Modal state
+    private bool modalVisible = false;
+    private bool deleteModalVisible = false;
+    private string deleteTargetName = "";
+    
+    // Message display
+    private string message = "";
+
+    // Sample data for table
+    private List<SampleLesson> sampleLessons = new()
+    {
+        new SampleLesson { Name = "مقدمة في البرمجة", Unit = "الوحدة الأولى", Topics = 5, IsActive = true },
+        new SampleLesson { Name = "المتغيرات والأنواع", Unit = "الوحدة الأولى", Topics = 3, IsActive = true },
+        new SampleLesson { Name = "الجمل الشرطية", Unit = "الوحدة الثانية", Topics = 4, IsActive = false },
+        new SampleLesson { Name = "الحلقات التكرارية", Unit = "الوحدة الثانية", Topics = 6, IsActive = true },
+    };
+
+    private class SampleLesson
+    {
+        public string Name { get; set; } = "";
+        public string Unit { get; set; } = "";
+        public int Topics { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    private void ShowMessage(string msg)
+    {
+        message = msg;
+        StateHasChanged();
+    }
+
+    private void ShowDeleteModal(string name)
+    {
+        deleteTargetName = name;
+        deleteModalVisible = true;
+    }
+
+    private void ConfirmDelete()
+    {
+        deleteModalVisible = false;
+        ShowMessage($"تم حذف '{deleteTargetName}' بنجاح");
+    }
+}

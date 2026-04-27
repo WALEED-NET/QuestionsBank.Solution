@@ -1,0 +1,252 @@
+@page "/lessons"
+@page "/"
+@layout AppLayout
+@rendermode InteractiveServer
+@using Blazorise
+@inject LessonService LessonService
+@inject NavigationManager NavigationManager
+
+<Container Fluid Class="py-3">
+    <!-- Header Section -->
+    <Div Class="d-flex justify-content-between align-items-center mb-4">
+        <Div>
+            <Heading Size="HeadingSize.Is4" Margin="Margin.Is0">
+                <i class="fas fa-book me-2 text-primary"></i>
+                إدارة الدروس
+            </Heading>
+            <Small Class="text-muted">عرض وإدارة جميع الدروس</Small>
+        </Div>
+        <Button Color="Color.Primary" Clicked="@(() => NavigationManager.NavigateTo("/lessons/create"))">
+            <i class="fas fa-plus me-2"></i>
+            إضافة درس جديد
+        </Button>
+    </Div>
+
+    <!-- Stats Cards -->
+    <Row Class="mb-4 g-3">
+        <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+            <StatsCard Icon="book" Value="@totalLessons.ToString()" Label="إجمالي الدروس" Color="#3b82f6" />
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+            <StatsCard Icon="check-circle" Value="@activeLessons.ToString()" Label="دروس نشطة" Color="#22c55e" />
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+            <StatsCard Icon="layer-group" Value="@totalTopics.ToString()" Label="المواضيع" Color="#a855f7" />
+        </Column>
+        <Column ColumnSize="ColumnSize.Is6.OnMobile.Is3.OnDesktop">
+            <StatsCard Icon="question-circle" Value="@totalQuestions.ToString()" Label="الأسئلة" Color="#f97316" />
+        </Column>
+    </Row>
+
+    <!-- Search & Filter -->
+    <Card Class="mb-4 shadow-sm">
+        <CardBody>
+            <Row Class="g-3 align-items-end">
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                    <Field>
+                        <FieldLabel>بحث</FieldLabel>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" @bind="searchTerm" @bind:event="oninput"
+                                   placeholder="بحث عن درس..." />
+                        </div>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                    <Field>
+                        <FieldLabel>الوحدة</FieldLabel>
+                        <Select TValue="int?" @bind-SelectedValue="unitFilter">
+                            <SelectItem TValue="int?" Value="null">جميع الوحدات</SelectItem>
+                            @foreach (var unit in Units.GetAll())
+                            {
+                                <SelectItem TValue="int?" Value="@unit.Id">@unit.Name</SelectItem>
+                            }
+                        </Select>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is3.OnDesktop">
+                    <Field>
+                        <FieldLabel>الحالة</FieldLabel>
+                        <Select TValue="string" @bind-SelectedValue="statusFilter">
+                            <SelectItem TValue="string" Value="@string.Empty">جميع الحالات</SelectItem>
+                            <SelectItem TValue="string" Value="@("active")">نشط</SelectItem>
+                            <SelectItem TValue="string" Value="@("inactive")">غير نشط</SelectItem>
+                        </Select>
+                    </Field>
+                </Column>
+                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
+                    <Button Color="Color.Secondary" Outline Block Clicked="ClearFilters">
+                        <i class="fas fa-eraser me-1"></i>
+                        مسح
+                    </Button>
+                </Column>
+            </Row>
+        </CardBody>
+    </Card>
+
+    <!-- Lessons Table -->
+    <Card Class="shadow-sm">
+        <CardBody Padding="Padding.Is0">
+            @if (filteredLessons.Any())
+            {
+                <Table Striped Hoverable FullWidth Class="mb-0">
+                    <TableHeader ThemeContrast="ThemeContrast.Light">
+                        <TableRow>
+                            <TableHeaderCell>#</TableHeaderCell>
+                            <TableHeaderCell>اسم الدرس</TableHeaderCell>
+                            <TableHeaderCell>الوحدة</TableHeaderCell>
+                            <TableHeaderCell Class="text-center">المواضيع</TableHeaderCell>
+                            <TableHeaderCell Class="text-center">الأسئلة</TableHeaderCell>
+                            <TableHeaderCell Class="text-center">الحالة</TableHeaderCell>
+                            <TableHeaderCell Class="text-center">الإجراءات</TableHeaderCell>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        @foreach (var (lesson, index) in filteredLessons.Select((l, i) => (l, i + 1)))
+                        {
+                            <TableRow>
+                                <TableRowCell>@index</TableRowCell>
+                                <TableRowCell>
+                                    <Div Class="d-flex align-items-center">
+                                        <i class="fas fa-book-open text-primary me-2"></i>
+                                        <Div>
+                                            <Strong>@lesson.Name</Strong>
+                                            @if (!string.IsNullOrEmpty(lesson.Goals))
+                                            {
+                                                <br />
+                                                <Small Class="text-muted">@lesson.Goals.Truncate(50)</Small>
+                                            }
+                                        </Div>
+                                    </Div>
+                                </TableRowCell>
+                                <TableRowCell>
+                                    <Badge Color="Color.Info">@lesson.UnitName</Badge>
+                                </TableRowCell>
+                                <TableRowCell Class="text-center">
+                                    <Badge Color="Color.Success">@lesson.Topics.Count</Badge>
+                                </TableRowCell>
+                                <TableRowCell Class="text-center">
+                                    <Badge Style="background: #f97316;">
+                                        @(lesson.Questions.Count + lesson.Topics.Sum(t => t.Questions.Count))
+                                    </Badge>
+                                </TableRowCell>
+                                <TableRowCell Class="text-center">
+                                    @if (lesson.IsActive)
+                                    {
+                                        <Badge Color="Color.Success">نشط</Badge>
+                                    }
+                                    else
+                                    {
+                                        <Badge Color="Color.Secondary">غير نشط</Badge>
+                                    }
+                                </TableRowCell>
+                                <TableRowCell Class="text-center">
+                                    <Buttons>
+                                        <Button Color="Color.Primary" Size="Size.Small" Outline
+                                                Clicked="@(() => EditLesson(lesson.Id))">
+                                            <i class="fas fa-edit"></i>
+                                        </Button>
+                                        <Button Color="Color.Danger" Size="Size.Small" Outline
+                                                Clicked="@(() => ShowDeleteModal(lesson))">
+                                            <i class="fas fa-trash"></i>
+                                        </Button>
+                                    </Buttons>
+                                </TableRowCell>
+                            </TableRow>
+                        }
+                    </TableBody>
+                </Table>
+            }
+            else
+            {
+                <Div Class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <Paragraph Class="text-muted">لا توجد دروس حالياً</Paragraph>
+                    <Button Color="Color.Primary" Clicked="@(() => NavigationManager.NavigateTo("/lessons/create"))">
+                        <i class="fas fa-plus me-2"></i>
+                        إضافة أول درس
+                    </Button>
+                </Div>
+            }
+        </CardBody>
+    </Card>
+</Container>
+
+<!-- Delete Modal -->
+<DeleteModal @bind-Visible="deleteModalVisible" Message="@deleteMessage" OnConfirm="ConfirmDelete"
+             OnCancel="CancelDelete" />
+
+@code {
+    private List<Lesson> lessons = new();
+    private string searchTerm = "";
+    private int? unitFilter = null;
+    private string statusFilter = "";
+
+    private bool deleteModalVisible = false;
+    private string deleteMessage = "";
+    private Lesson? lessonToDelete;
+
+    // Stats
+    private int totalLessons => lessons.Count;
+    private int activeLessons => lessons.Count(l => l.IsActive);
+    private int totalTopics => lessons.Sum(l => l.Topics.Count);
+    private int totalQuestions => lessons.Sum(l => l.Questions.Count + l.Topics.Sum(t => t.Questions.Count));
+
+    // Filtered lessons
+    private IEnumerable<Lesson> filteredLessons => lessons
+        .Where(l => string.IsNullOrEmpty(searchTerm) || l.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        .Where(l => unitFilter == null || l.UnitId == unitFilter)
+        .Where(l => string.IsNullOrEmpty(statusFilter) ||
+                    (statusFilter == "active" && l.IsActive) ||
+                    (statusFilter == "inactive" && !l.IsActive))
+        .OrderBy(l => l.UnitId)
+        .ThenBy(l => l.Order);
+
+    protected override void OnInitialized()
+    {
+        lessons = LessonService.GetAll();
+        LessonService.OnChange += StateHasChanged;
+    }
+
+    private void EditLesson(Guid id)
+    {
+        NavigationManager.NavigateTo($"/lessons/edit/{id}");
+    }
+
+    private void ShowDeleteModal(Lesson lesson)
+    {
+        lessonToDelete = lesson;
+        deleteMessage = $"هل أنت متأكد من حذف الدرس \"{lesson.Name}\"؟ سيتم حذف جميع المواضيع والأسئلة المرتبطة.";
+        deleteModalVisible = true;
+    }
+
+    private void ConfirmDelete()
+    {
+        if (lessonToDelete != null)
+        {
+            LessonService.Delete(lessonToDelete.Id);
+            lessons = LessonService.GetAll();
+        }
+        CancelDelete();
+    }
+
+    private void CancelDelete()
+    {
+        deleteModalVisible = false;
+        lessonToDelete = null;
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        unitFilter = null;
+        statusFilter = "";
+    }
+
+    public void Dispose()
+    {
+        LessonService.OnChange -= StateHasChanged;
+    }
+}
