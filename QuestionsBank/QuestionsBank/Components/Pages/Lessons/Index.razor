@@ -207,7 +207,6 @@
     protected override void OnInitialized()
     {
         lessons = LessonService.GetAll();
-        LessonService.OnChange += StateHasChanged;
     }
 
     private void EditLesson(Guid id)
@@ -243,10 +242,5 @@
         searchTerm = "";
         unitFilter = null;
         statusFilter = "";
-    }
-
-    public void Dispose()
-    {
-        LessonService.OnChange -= StateHasChanged;
     }
 }

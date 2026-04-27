@@ -3,9 +3,6 @@ namespace QuestionsBank.Models;
 public class LessonService
 {
     private readonly List<Lesson> _lessons = new();
-    
-    public event Action? OnChange;
-    private void NotifyStateChanged() => OnChange?.Invoke();
 
     public LessonService()
     {
@@ -80,7 +77,6 @@ public class LessonService
         var unit = Units.GetAll().FirstOrDefault(u => u.Id == lesson.UnitId);
         lesson.UnitName = unit.Name ?? "غير محدد";
         _lessons.Add(lesson);
-        NotifyStateChanged();
     }
 
     public void Update(Lesson lesson)
@@ -92,7 +88,6 @@ public class LessonService
             var unit = Units.GetAll().FirstOrDefault(u => u.Id == lesson.UnitId);
             lesson.UnitName = unit.Name ?? "غير محدد";
             _lessons[index] = lesson;
-            NotifyStateChanged();
         }
     }
 
@@ -102,7 +97,6 @@ public class LessonService
         if (lesson != null)
         {
             _lessons.Remove(lesson);
-            NotifyStateChanged();
         }
     }
 
