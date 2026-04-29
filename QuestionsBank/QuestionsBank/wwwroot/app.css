@@ -393,3 +393,28 @@ label,
     background: #ef4444;
     color: white;
 }
+
+/* ==================== Collapsible Headers ==================== */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    opacity: 0.9;
+}
+
+/* ==================== Table Improvements ==================== */
+.table-responsive {
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.table > :not(caption) > * > * {
+    vertical-align: middle;
+}
+
+/* ==================== Badge Sizes ==================== */
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.2em 0.5em;
+}

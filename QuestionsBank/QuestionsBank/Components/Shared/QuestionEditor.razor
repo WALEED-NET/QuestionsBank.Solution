@@ -4,10 +4,31 @@
 <Card Class="mb-3 card-animate" Style="border-right: 3px solid #f97316;">
     <CardHeader Style="background: #fff7ed;">
         <Div Class="d-flex justify-content-between align-items-center">
-            <Badge Style="background: #ffedd5; color: #c2410c;">سؤال @Index</Badge>
-            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="OnRemove">
-                <i class="fas fa-trash"></i>
-            </button>
+            <Span>
+                @if (Index > 0)
+                {
+                    <Badge Style="background: #ffedd5; color: #c2410c;">سؤال @Index</Badge>
+                }
+                else
+                {
+                    <Badge Style="background: #ffedd5; color: #c2410c;">
+                        <i class="fas @(IsEditMode ? "fa-edit" : "fa-plus") me-1"></i>
+                        @(IsEditMode ? "تعديل السؤال" : "سؤال جديد")
+                    </Badge>
+                }
+            </Span>
+            @if (!ShowSaveCancel)
+            {
+                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="OnRemove">
+                    <i class="fas fa-trash"></i>
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="OnCancel">
+                    <i class="fas fa-times"></i>
+                </button>
+            }
         </Div>
     </CardHeader>
     <CardBody>
@@ -153,6 +174,20 @@
                 </Column>
             </Row>
         </div>
+        
+        @if (ShowSaveCancel)
+        {
+            <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                <button type="button" class="btn btn-outline-secondary" @onclick="OnCancel">
+                    <i class="fas fa-times me-1"></i>
+                    إلغاء
+                </button>
+                <button type="button" class="btn btn-success" @onclick="OnSave">
+                    <i class="fas fa-check me-1"></i>
+                    @(IsEditMode ? "حفظ التعديلات" : "إضافة")
+                </button>
+            </div>
+        }
     </CardBody>
 </Card>
 
@@ -160,6 +195,10 @@
     [Parameter] public Question Question { get; set; } = new();
     [Parameter] public int Index { get; set; }
     [Parameter] public EventCallback OnRemove { get; set; }
+    [Parameter] public bool ShowSaveCancel { get; set; } = false;
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public bool IsEditMode { get; set; } = false;
 
     private bool? trueFalseAnswer;
     private string fillBlankAnswer = "";

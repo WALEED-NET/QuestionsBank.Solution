@@ -24,54 +24,66 @@
 
     <!-- Lesson Info Card (Blue) -->
     <Card Class="mb-4 shadow-sm">
-        <CardHeader Background="Background.Primary" TextColor="TextColor.White">
-            <i class="fas fa-book me-2"></i>
-            بيانات الدرس
+        <CardHeader Background="Background.Primary" TextColor="TextColor.White" Class="cursor-pointer" @onclick="() => lessonInfoCollapsed = !lessonInfoCollapsed">
+            <Div Class="d-flex justify-content-between align-items-center">
+                <Span>
+                    <i class="fas fa-book me-2"></i>
+                    بيانات الدرس
+                    @if (!string.IsNullOrEmpty(lesson.Name))
+                    {
+                        <Badge Color="Color.Light" Class="ms-2">@lesson.Name</Badge>
+                    }
+                </Span>
+                <i class="fas @(lessonInfoCollapsed ? "fa-chevron-down" : "fa-chevron-up")"></i>
+            </Div>
         </CardHeader>
-        <CardBody>
-            <Row Class="g-3">
-                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                    <Field>
-                        <FieldLabel>اسم الدرس *</FieldLabel>
-                        <input type="text" class="form-control" @bind="lesson.Name" placeholder="أدخل اسم الدرس" />
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                    <Field>
-                        <FieldLabel>الوحدة *</FieldLabel>
-                        <select class="form-select" @bind="lesson.UnitId" @bind:after="OnUnitChangedAfter">
-                            <option value="0">اختر الوحدة</option>
-                            @foreach (var unit in Units.GetAll())
-                            {
-                                <option value="@unit.Id">@unit.Name</option>
-                            }
-                        </select>
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
-                    <Field>
-                        <FieldLabel>الترتيب</FieldLabel>
-                        <input type="number" class="form-control" @bind="lesson.Order" min="1" />
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
-                    <Field>
-                        <FieldLabel>الحالة</FieldLabel>
-                        <select class="form-select" @bind="lesson.IsActive">
-                            <option value="true">نشط</option>
-                            <option value="false">غير نشط</option>
-                        </select>
-                    </Field>
-                </Column>
-                <Column ColumnSize="ColumnSize.Is12">
-                    <Field>
-                        <FieldLabel>الأهداف</FieldLabel>
-                        <textarea class="form-control" @bind="lesson.Goals" rows="3"
-                                  placeholder="أدخل أهداف الدرس..."></textarea>
-                    </Field>
-                </Column>
-            </Row>
-        </CardBody>
+        @if (!lessonInfoCollapsed)
+        {
+            <CardBody>
+                <Row Class="g-3">
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <Field>
+                            <FieldLabel>اسم الدرس *</FieldLabel>
+                            <input type="text" class="form-control" @bind="lesson.Name" placeholder="أدخل اسم الدرس" />
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                        <Field>
+                            <FieldLabel>الوحدة *</FieldLabel>
+                            <select class="form-select" @bind="lesson.UnitId" @bind:after="OnUnitChangedAfter">
+                                <option value="0">اختر الوحدة</option>
+                                @foreach (var unit in Units.GetAll())
+                                {
+                                    <option value="@unit.Id">@unit.Name</option>
+                                }
+                            </select>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
+                        <Field>
+                            <FieldLabel>الترتيب</FieldLabel>
+                            <input type="number" class="form-control" @bind="lesson.Order" min="1" />
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
+                        <Field>
+                            <FieldLabel>الحالة</FieldLabel>
+                            <select class="form-select" @bind="lesson.IsActive">
+                                <option value="true">نشط</option>
+                                <option value="false">غير نشط</option>
+                            </select>
+                        </Field>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is12">
+                        <Field>
+                            <FieldLabel>الأهداف</FieldLabel>
+                            <textarea class="form-control" @bind="lesson.Goals" rows="3"
+                                      placeholder="أدخل أهداف الدرس..."></textarea>
+                        </Field>
+                    </Column>
+                </Row>
+            </CardBody>
+        }
     </Card>
 
     <!-- Topics Section (Green) -->
@@ -82,166 +94,387 @@
                     <i class="fas fa-layer-group me-2"></i>
                     المواضيع (@lesson.Topics.Count)
                 </Span>
-                <button type="button" class="btn btn-light btn-sm" @onclick="AddTopic">
+                <button type="button" class="btn btn-light btn-sm" @onclick="ShowAddTopicForm" disabled="@showTopicForm">
                     <i class="fas fa-plus me-1"></i>
                     إضافة موضوع
                 </button>
             </Div>
         </CardHeader>
         <CardBody>
+            <!-- Topics Table -->
             @if (lesson.Topics.Any())
             {
-                @foreach (var (topic, topicIndex) in lesson.Topics.Select((t, i) => (t, i + 1)))
-                {
-                    <Card Class="mb-3 card-animate" Style="border-right: 3px solid #22c55e;">
-                        <CardHeader Style="background: #f0fdf4;">
-                            <Div Class="d-flex justify-content-between align-items-center">
-                                <Badge Color="Color.Success">موضوع @topicIndex</Badge>
-                                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="@(() => RemoveTopic(topic))">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </Div>
-                        </CardHeader>
-                        <CardBody>
-                            <Row Class="g-3 mb-3">
-                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
-                                    <Field>
-                                        <FieldLabel>اسم الموضوع *</FieldLabel>
-                                        <input type="text" class="form-control" @bind="topic.Name"
-                                               placeholder="أدخل اسم الموضوع" />
-                                    </Field>
-                                </Column>
-                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
-                                    <Field>
-                                        <FieldLabel>الوصف</FieldLabel>
-                                        <input type="text" class="form-control" @bind="topic.Description"
-                                               placeholder="وصف مختصر" />
-                                    </Field>
-                                </Column>
-                                <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
-                                    <Field>
-                                        <FieldLabel>الترتيب</FieldLabel>
-                                        <input type="number" class="form-control" @bind="topic.Order" min="1" />
-                                    </Field>
-                                </Column>
-                            </Row>
-
-                            <!-- Topic Contents (Purple) -->
-                            <Card Class="mb-3" Style="border-right: 3px solid #a855f7;">
-                                <CardHeader Style="background: #faf5ff;">
-                                    <Div Class="d-flex justify-content-between align-items-center">
-                                        <Span Style="color: #7c3aed;">
-                                            <i class="fas fa-file-alt me-2"></i>
-                                            المحتوى (@topic.Contents.Count)
-                                        </Span>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="@(() => AddContent(topic))">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </Div>
-                                </CardHeader>
-                                @if (topic.Contents.Any())
+                <div class="table-responsive mb-3">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>اسم الموضوع</th>
+                                <th>الوصف</th>
+                                <th class="text-center" style="width: 80px;">المحتوى</th>
+                                <th class="text-center" style="width: 80px;">الأسئلة</th>
+                                <th class="text-center" style="width: 120px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var (topic, topicIndex) in lesson.Topics.Select((t, i) => (t, i + 1)))
+                            {
+                                <tr class="@(expandedTopicId == topic.Id ? "table-success" : "")">
+                                    <td>@topicIndex</td>
+                                    <td>
+                                        <strong>@(string.IsNullOrEmpty(topic.Name) ? "بدون اسم" : topic.Name)</strong>
+                                    </td>
+                                    <td class="text-muted">@(topic.Description?.Truncate(30) ?? "-")</td>
+                                    <td class="text-center">
+                                        <Badge Color="Color.Primary">@topic.Contents.Count</Badge>
+                                    </td>
+                                    <td class="text-center">
+                                        <Badge Style="background: #f97316;">@topic.Questions.Count</Badge>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-success" title="عرض/إخفاء التفاصيل"
+                                                    @onclick="@(() => ToggleTopicExpand(topic.Id))">
+                                                <i class="fas @(expandedTopicId == topic.Id ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary" title="تعديل"
+                                                    @onclick="@(() => EditTopic(topic))">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" title="حذف"
+                                                    @onclick="@(() => RemoveTopic(topic))">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @if (expandedTopicId == topic.Id)
                                 {
-                                    <CardBody>
-                                        @foreach (var (content, contentIndex) in topic.Contents.Select((c, i) => (c, i + 1)))
-                                        {
-                                            <Card Class="mb-2 card-animate" Style="border-right: 2px solid #a855f7;">
-                                                <CardBody Padding="Padding.Is2">
-                                                    <Row Class="g-2 align-items-center">
-                                                        <Column ColumnSize="ColumnSize.IsAuto">
-                                                            <Badge Style="background: #f3e8ff; color: #7c3aed;">@contentIndex</Badge>
-                                                        </Column>
-                                                        <Column>
-                                                            <input type="text" class="form-control form-control-sm"
-                                                                   @bind="content.Title" placeholder="عنوان المحتوى" />
-                                                        </Column>
-                                                        <Column>
-                                                            <input type="text" class="form-control form-control-sm" @bind="content.Body"
-                                                                   placeholder="نص المحتوى" />
-                                                        </Column>
-                                                        <Column ColumnSize="ColumnSize.IsAuto">
-                                                            <button type="button" class="btn btn-outline-danger btn-sm"
-                                                                    @onclick="@(() => RemoveContent(topic, content))">
-                                                                <i class="fas fa-times"></i>
+                                    <tr>
+                                        <td colspan="6" class="p-0">
+                                            <div class="bg-light p-3 border-top">
+                                                <!-- Topic Contents Section -->
+                                                <Card Class="mb-3" Style="border-right: 3px solid #a855f7;">
+                                                    <CardHeader Style="background: #faf5ff;">
+                                                        <Div Class="d-flex justify-content-between align-items-center">
+                                                            <Span Style="color: #7c3aed;">
+                                                                <i class="fas fa-file-alt me-2"></i>
+                                                                المحتوى (@topic.Contents.Count)
+                                                            </Span>
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                                    @onclick="@(() => ShowAddContentForm(topic))"
+                                                                    disabled="@(showContentForm.GetValueOrDefault(topic.Id))">
+                                                                <i class="fas fa-plus"></i>
                                                             </button>
-                                                        </Column>
-                                                    </Row>
-                                                </CardBody>
-                                            </Card>
-                                        }
-                                    </CardBody>
-                                }
-                            </Card>
+                                                        </Div>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        @if (topic.Contents.Any())
+                                                        {
+                                                            <div class="table-responsive mb-3">
+                                                                <table class="table table-sm table-hover mb-0">
+                                                                    <thead class="table-light">
+                                                                        <tr>
+                                                                            <th style="width: 40px;">#</th>
+                                                                            <th>العنوان</th>
+                                                                            <th>المحتوى</th>
+                                                                            <th class="text-center" style="width: 100px;">الإجراءات</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var (content, idx) in topic.Contents.Select((c, i) => (c, i + 1)))
+                                                                        {
+                                                                            <tr>
+                                                                                <td>@idx</td>
+                                                                                <td>@(string.IsNullOrEmpty(content.Title) ? "-" : content.Title)</td>
+                                                                                <td class="text-muted">@(content.Body?.Truncate(40) ?? "-")</td>
+                                                                                <td class="text-center">
+                                                                                    <div class="btn-group btn-group-sm">
+                                                                                        <button type="button" class="btn btn-outline-primary" 
+                                                                                                @onclick="@(() => EditContent(topic, content))">
+                                                                                            <i class="fas fa-edit"></i>
+                                                                                        </button>
+                                                                                        <button type="button" class="btn btn-outline-danger" 
+                                                                                                @onclick="@(() => RemoveContent(topic, content))">
+                                                                                            <i class="fas fa-trash"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        }
+                                                        
+                                                        @if (showContentForm.GetValueOrDefault(topic.Id))
+                                                        {
+                                                            <Card Class="border-primary">
+                                                                <CardBody>
+                                                                    <Row Class="g-2 align-items-end">
+                                                                        <Column ColumnSize="ColumnSize.Is4">
+                                                                            <Field>
+                                                                                <FieldLabel>العنوان</FieldLabel>
+                                                                                <input type="text" class="form-control form-control-sm"
+                                                                                       @bind="contentFormData[topic.Id].Title" placeholder="عنوان المحتوى" />
+                                                                            </Field>
+                                                                        </Column>
+                                                                        <Column ColumnSize="ColumnSize.Is5">
+                                                                            <Field>
+                                                                                <FieldLabel>المحتوى</FieldLabel>
+                                                                                <input type="text" class="form-control form-control-sm" 
+                                                                                       @bind="contentFormData[topic.Id].Body" placeholder="نص المحتوى" />
+                                                                            </Field>
+                                                                        </Column>
+                                                                        <Column ColumnSize="ColumnSize.Is3">
+                                                                            <div class="btn-group btn-group-sm w-100">
+                                                                                <button type="button" class="btn btn-success" @onclick="@(() => SaveContent(topic))">
+                                                                                    <i class="fas fa-check"></i>
+                                                                                </button>
+                                                                                <button type="button" class="btn btn-outline-secondary" @onclick="@(() => CancelContentForm(topic))">
+                                                                                    <i class="fas fa-times"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </Column>
+                                                                    </Row>
+                                                                </CardBody>
+                                                            </Card>
+                                                        }
+                                                        else if (!topic.Contents.Any())
+                                                        {
+                                                            <small class="text-muted">لا يوجد محتوى</small>
+                                                        }
+                                                    </CardBody>
+                                                </Card>
 
-                            <!-- Topic Questions (Orange) -->
-                            <Card Style="border-right: 3px solid #f97316;">
-                                <CardHeader Style="background: #fff7ed;">
-                                    <Div Class="d-flex justify-content-between align-items-center">
-                                        <Span Style="color: #c2410c;">
-                                            <i class="fas fa-question-circle me-2"></i>
-                                            أسئلة الموضوع (@topic.Questions.Count)
-                                        </Span>
-                                        <button type="button" class="btn btn-sm" style="border-color: #f97316; color: #f97316;"
-                                                @onclick="@(() => AddQuestion(topic.Questions))">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </Div>
-                                </CardHeader>
-                                @if (topic.Questions.Any())
-                                {
-                                    <CardBody>
-                                        @foreach (var (question, qIndex) in topic.Questions.Select((q, i) => (q, i + 1)))
-                                        {
-                                            <QuestionEditor Question="question" Index="qIndex"
-                                                            OnRemove="@(() => RemoveQuestion(topic.Questions, question))" />
-                                        }
-                                    </CardBody>
+                                                <!-- Topic Questions Section -->
+                                                <Card Style="border-right: 3px solid #f97316;">
+                                                    <CardHeader Style="background: #fff7ed;">
+                                                        <Div Class="d-flex justify-content-between align-items-center">
+                                                            <Span Style="color: #c2410c;">
+                                                                <i class="fas fa-question-circle me-2"></i>
+                                                                الأسئلة (@topic.Questions.Count)
+                                                            </Span>
+                                                            <button type="button" class="btn btn-sm" style="border-color: #f97316; color: #f97316;"
+                                                                    @onclick="@(() => ShowAddTopicQuestionForm(topic))"
+                                                                    disabled="@(showTopicQuestionForm.GetValueOrDefault(topic.Id))">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </Div>
+                                                    </CardHeader>
+                                                    <CardBody>
+                                                        @if (topic.Questions.Any())
+                                                        {
+                                                            <div class="table-responsive mb-3">
+                                                                <table class="table table-sm table-hover mb-0">
+                                                                    <thead class="table-light">
+                                                                        <tr>
+                                                                            <th style="width: 40px;">#</th>
+                                                                            <th>نص السؤال</th>
+                                                                            <th class="text-center" style="width: 100px;">النوع</th>
+                                                                            <th class="text-center" style="width: 100px;">الإجراءات</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var (question, idx) in topic.Questions.Select((q, i) => (q, i + 1)))
+                                                                        {
+                                                                            <tr>
+                                                                                <td>@idx</td>
+                                                                                <td>@(string.IsNullOrEmpty(question.Text) ? "-" : question.Text.Truncate(40))</td>
+                                                                                <td class="text-center">
+                                                                                    <Badge Color="@GetQuestionTypeBadgeColor(question.Type)" Class="badge-sm">
+                                                                                        @GetQuestionTypeLabel(question.Type)
+                                                                                    </Badge>
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    <div class="btn-group btn-group-sm">
+                                                                                        <button type="button" class="btn btn-outline-primary" 
+                                                                                                @onclick="@(() => EditTopicQuestion(topic, question))">
+                                                                                            <i class="fas fa-edit"></i>
+                                                                                        </button>
+                                                                                        <button type="button" class="btn btn-outline-danger" 
+                                                                                                @onclick="@(() => RemoveQuestion(topic.Questions, question))">
+                                                                                            <i class="fas fa-trash"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        }
+                                                        
+                                                        @if (showTopicQuestionForm.GetValueOrDefault(topic.Id))
+                                                        {
+                                                            <QuestionEditor Question="GetTopicQuestionFormData(topic)" 
+                                                                            Index="0"
+                                                                            OnRemove="@(() => CancelTopicQuestionForm(topic))"
+                                                                            ShowSaveCancel="true"
+                                                                            OnSave="@(() => SaveTopicQuestion(topic))"
+                                                                            OnCancel="@(() => CancelTopicQuestionForm(topic))"
+                                                                            IsEditMode="@(editingTopicQuestion.GetValueOrDefault(topic.Id) != null)" />
+                                                        }
+                                                        else if (!topic.Questions.Any())
+                                                        {
+                                                            <small class="text-muted">لا توجد أسئلة</small>
+                                                        }
+                                                    </CardBody>
+                                                </Card>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 }
-                            </Card>
-                        </CardBody>
-                    </Card>
-                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-            else
+            else if (!showTopicForm)
             {
-                <div class="alert alert-info">
+                <div class="alert alert-info mb-0">
                     <i class="fas fa-info-circle me-2"></i>
                     لا توجد مواضيع. اضغط على "إضافة موضوع" لإضافة موضوع جديد.
                 </div>
+            }
+
+            <!-- Add/Edit Topic Form -->
+            @if (showTopicForm)
+            {
+                <Card Class="border-success" Style="border-right: 3px solid #22c55e;">
+                    <CardHeader Style="background: #f0fdf4;">
+                        <Div Class="d-flex justify-content-between align-items-center">
+                            <Span Style="color: #16a34a;">
+                                <i class="fas @(editingTopic != null ? "fa-edit" : "fa-plus") me-2"></i>
+                                @(editingTopic != null ? "تعديل الموضوع" : "إضافة موضوع جديد")
+                            </Span>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelTopicForm">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </Div>
+                    </CardHeader>
+                    <CardBody>
+                        <Row Class="g-3">
+                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is6.OnDesktop">
+                                <Field>
+                                    <FieldLabel>اسم الموضوع *</FieldLabel>
+                                    <input type="text" class="form-control" @bind="topicFormData.Name"
+                                           placeholder="أدخل اسم الموضوع" />
+                                </Field>
+                            </Column>
+                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is4.OnDesktop">
+                                <Field>
+                                    <FieldLabel>الوصف</FieldLabel>
+                                    <input type="text" class="form-control" @bind="topicFormData.Description"
+                                           placeholder="وصف مختصر" />
+                                </Field>
+                            </Column>
+                            <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
+                                <Field>
+                                    <FieldLabel>الترتيب</FieldLabel>
+                                    <input type="number" class="form-control" @bind="topicFormData.Order" min="1" />
+                                </Field>
+                            </Column>
+                        </Row>
+                        <Div Class="d-flex justify-content-end gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="CancelTopicForm">
+                                <i class="fas fa-times me-1"></i>
+                                إلغاء
+                            </button>
+                            <button type="button" class="btn btn-success" @onclick="SaveTopic">
+                                <i class="fas fa-check me-1"></i>
+                                @(editingTopic != null ? "حفظ التعديلات" : "إضافة")
+                            </button>
+                        </Div>
+                    </CardBody>
+                </Card>
             }
         </CardBody>
     </Card>
 
     <!-- Lesson Questions Section (Orange) -->
     <Card Class="mb-4 shadow-sm">
-        <CardHeader Style="background: #f97316; color: white;">
+        <CardHeader Style="background: #f97316; color: white;" Class="cursor-pointer" @onclick="() => lessonQuestionsCollapsed = !lessonQuestionsCollapsed">
             <Div Class="d-flex justify-content-between align-items-center">
                 <Span>
                     <i class="fas fa-question-circle me-2"></i>
                     أسئلة الدرس (@lesson.Questions.Count)
                 </Span>
-                <button type="button" class="btn btn-light btn-sm" @onclick="@(() => AddQuestion(lesson.Questions))">
-                    <i class="fas fa-plus me-1"></i>
-                    إضافة سؤال
-                </button>
+                <Div>
+                    <button type="button" class="btn btn-light btn-sm me-2" @onclick:stopPropagation="true" 
+                            @onclick="ShowAddLessonQuestionForm" disabled="@showLessonQuestionForm">
+                        <i class="fas fa-plus me-1"></i>
+                        إضافة سؤال
+                    </button>
+                    <i class="fas @(lessonQuestionsCollapsed ? "fa-chevron-down" : "fa-chevron-up")"></i>
+                </Div>
             </Div>
         </CardHeader>
-        <CardBody>
-            @if (lesson.Questions.Any())
-            {
-                @foreach (var (question, qIndex) in lesson.Questions.Select((q, i) => (q, i + 1)))
+        @if (!lessonQuestionsCollapsed)
+        {
+            <CardBody>
+                <!-- Questions Table -->
+                @if (lesson.Questions.Any())
                 {
-                    <QuestionEditor Question="question" Index="qIndex"
-                                    OnRemove="@(() => RemoveQuestion(lesson.Questions, question))" />
+                    <div class="table-responsive mb-3">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>نص السؤال</th>
+                                    <th class="text-center" style="width: 120px;">النوع</th>
+                                    <th class="text-center" style="width: 120px;">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var (question, qIndex) in lesson.Questions.Select((q, i) => (q, i + 1)))
+                                {
+                                    <tr>
+                                        <td>@qIndex</td>
+                                        <td>@(string.IsNullOrEmpty(question.Text) ? "بدون نص" : question.Text.Truncate(50))</td>
+                                        <td class="text-center">
+                                            <Badge Color="@GetQuestionTypeBadgeColor(question.Type)">
+                                                @GetQuestionTypeLabel(question.Type)
+                                            </Badge>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary" title="تعديل"
+                                                        @onclick="@(() => EditLessonQuestion(question))">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" title="حذف"
+                                                        @onclick="@(() => RemoveQuestion(lesson.Questions, question))">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
-            }
-            else
-            {
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle me-2"></i>
-                    لا توجد أسئلة مرتبطة بالدرس مباشرة. يمكنك إضافة أسئلة هنا أو داخل كل موضوع.
-                </div>
-            }
-        </CardBody>
+                else if (!showLessonQuestionForm)
+                {
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا توجد أسئلة مرتبطة بالدرس مباشرة. يمكنك إضافة أسئلة هنا أو داخل كل موضوع.
+                    </div>
+                }
+
+                <!-- Add/Edit Question Form -->
+                @if (showLessonQuestionForm)
+                {
+                    <QuestionEditor Question="lessonQuestionFormData" Index="0"
+                                    OnRemove="CancelLessonQuestionForm"
+                                    ShowSaveCancel="true"
+                                    OnSave="SaveLessonQuestion"
+                                    OnCancel="CancelLessonQuestionForm"
+                                    IsEditMode="@(editingLessonQuestion != null)" />
+                }
+            </CardBody>
+        }
     </Card>
 
     <!-- Action Buttons -->
@@ -275,6 +508,31 @@
 
     private Lesson lesson = new();
     private bool IsEdit => Id.HasValue;
+    
+    // Collapse states
+    private bool lessonInfoCollapsed = false;
+    private bool lessonQuestionsCollapsed = false;
+    
+    // Topic form
+    private bool showTopicForm = false;
+    private Topic? editingTopic = null;
+    private Topic topicFormData = new();
+    private Guid? expandedTopicId = null;
+    
+    // Lesson Question form
+    private bool showLessonQuestionForm = false;
+    private Question? editingLessonQuestion = null;
+    private Question lessonQuestionFormData = new();
+    
+    // Topic Content form (per topic)
+    private Dictionary<Guid, bool> showContentForm = new();
+    private Dictionary<Guid, Content?> editingContent = new();
+    private Dictionary<Guid, Content> contentFormData = new();
+    
+    // Topic Question form (per topic)
+    private Dictionary<Guid, bool> showTopicQuestionForm = new();
+    private Dictionary<Guid, Question?> editingTopicQuestion = new();
+    private Dictionary<Guid, Question> topicQuestionFormData = new();
 
     protected override void OnInitialized()
     {
@@ -290,6 +548,23 @@
                 NavigationManager.NavigateTo("/lessons");
             }
         }
+        
+        InitializeQuestionFormData();
+    }
+    
+    private void InitializeQuestionFormData()
+    {
+        lessonQuestionFormData = CreateNewQuestion();
+    }
+    
+    private Question CreateNewQuestion()
+    {
+        var question = new Question();
+        question.Options.Add(new QuestionOption { Text = "", Order = 1 });
+        question.Options.Add(new QuestionOption { Text = "", Order = 2 });
+        question.Options.Add(new QuestionOption { Text = "", Order = 3 });
+        question.Options.Add(new QuestionOption { Text = "", Order = 4 });
+        return question;
     }
 
     private void OnUnitChangedAfter()
@@ -298,26 +573,130 @@
         lesson.UnitName = unit.Name ?? "";
     }
 
-    // Topic methods
-    private void AddTopic()
+    #region Topic Methods
+    
+    private void ShowAddTopicForm()
     {
-        lesson.Topics.Add(new Topic { Order = lesson.Topics.Count + 1 });
+        editingTopic = null;
+        topicFormData = new Topic { Order = lesson.Topics.Count + 1 };
+        showTopicForm = true;
+    }
+    
+    private void EditTopic(Topic topic)
+    {
+        editingTopic = topic;
+        topicFormData = new Topic 
+        { 
+            Id = topic.Id,
+            Name = topic.Name, 
+            Description = topic.Description, 
+            Order = topic.Order 
+        };
+        showTopicForm = true;
+    }
+    
+    private void SaveTopic()
+    {
+        if (string.IsNullOrWhiteSpace(topicFormData.Name)) return;
+        
+        if (editingTopic != null)
+        {
+            editingTopic.Name = topicFormData.Name;
+            editingTopic.Description = topicFormData.Description;
+            editingTopic.Order = topicFormData.Order;
+        }
+        else
+        {
+            lesson.Topics.Add(new Topic 
+            { 
+                Name = topicFormData.Name, 
+                Description = topicFormData.Description, 
+                Order = topicFormData.Order 
+            });
+        }
+        
+        CancelTopicForm();
+    }
+    
+    private void CancelTopicForm()
+    {
+        showTopicForm = false;
+        editingTopic = null;
+        topicFormData = new Topic();
     }
 
     private void RemoveTopic(Topic topic)
     {
         lesson.Topics.Remove(topic);
+        if (expandedTopicId == topic.Id)
+        {
+            expandedTopicId = null;
+        }
         // Reorder
         for (int i = 0; i < lesson.Topics.Count; i++)
         {
             lesson.Topics[i].Order = i + 1;
         }
     }
-
-    // Content methods
-    private void AddContent(Topic topic)
+    
+    private void ToggleTopicExpand(Guid topicId)
     {
-        topic.Contents.Add(new Content { Order = topic.Contents.Count + 1 });
+        expandedTopicId = expandedTopicId == topicId ? null : topicId;
+    }
+    
+    #endregion
+
+    #region Content Methods
+    
+    private void ShowAddContentForm(Topic topic)
+    {
+        editingContent[topic.Id] = null;
+        contentFormData[topic.Id] = new Content { Order = topic.Contents.Count + 1 };
+        showContentForm[topic.Id] = true;
+    }
+    
+    private void EditContent(Topic topic, Content content)
+    {
+        editingContent[topic.Id] = content;
+        contentFormData[topic.Id] = new Content 
+        { 
+            Id = content.Id,
+            Title = content.Title, 
+            Body = content.Body, 
+            Order = content.Order 
+        };
+        showContentForm[topic.Id] = true;
+    }
+    
+    private void SaveContent(Topic topic)
+    {
+        if (!contentFormData.ContainsKey(topic.Id)) return;
+        var formData = contentFormData[topic.Id];
+        
+        if (editingContent.TryGetValue(topic.Id, out var editing) && editing != null)
+        {
+            editing.Title = formData.Title;
+            editing.Body = formData.Body;
+            editing.Order = formData.Order;
+        }
+        else
+        {
+            topic.Contents.Add(new Content 
+            { 
+                Title = formData.Title, 
+                Body = formData.Body, 
+                Order = formData.Order 
+            });
+        }
+        
+        CancelContentForm(topic);
+    }
+    
+    private void CancelContentForm(Topic topic)
+    {
+        showContentForm[topic.Id] = false;
+        editingContent[topic.Id] = null;
+        contentFormData[topic.Id] = new Content();
     }
 
     private void RemoveContent(Topic topic, Content content)
@@ -328,25 +707,116 @@
             topic.Contents[i].Order = i + 1;
         }
     }
+    
+    #endregion
 
-    // Question methods
-    private void AddQuestion(List<Question> questions)
+    #region Lesson Question Methods
+    
+    private void ShowAddLessonQuestionForm()
     {
-        var question = new Question();
-        // Add default options for multiple choice
-        question.Options.Add(new QuestionOption { Text = "", Order = 1 });
-        question.Options.Add(new QuestionOption { Text = "", Order = 2 });
-        question.Options.Add(new QuestionOption { Text = "", Order = 3 });
-        question.Options.Add(new QuestionOption { Text = "", Order = 4 });
-        questions.Add(question);
+        editingLessonQuestion = null;
+        lessonQuestionFormData = CreateNewQuestion();
+        showLessonQuestionForm = true;
+    }
+    
+    private void EditLessonQuestion(Question question)
+    {
+        editingLessonQuestion = question;
+        lessonQuestionFormData = question; // Direct reference for editing
+        showLessonQuestionForm = true;
+    }
+    
+    private void SaveLessonQuestion()
+    {
+        if (string.IsNullOrWhiteSpace(lessonQuestionFormData.Text)) return;
+        
+        if (editingLessonQuestion == null)
+        {
+            lesson.Questions.Add(lessonQuestionFormData);
+        }
+        // If editing, changes are already applied via binding
+        
+        CancelLessonQuestionForm();
+    }
+    
+    private void CancelLessonQuestionForm()
+    {
+        showLessonQuestionForm = false;
+        editingLessonQuestion = null;
+        lessonQuestionFormData = CreateNewQuestion();
+    }
+    
+    #endregion
+
+    #region Topic Question Methods
+    
+    private void ShowAddTopicQuestionForm(Topic topic)
+    {
+        editingTopicQuestion[topic.Id] = null;
+        topicQuestionFormData[topic.Id] = CreateNewQuestion();
+        showTopicQuestionForm[topic.Id] = true;
+    }
+    
+    private void EditTopicQuestion(Topic topic, Question question)
+    {
+        editingTopicQuestion[topic.Id] = question;
+        topicQuestionFormData[topic.Id] = question;
+        showTopicQuestionForm[topic.Id] = true;
+    }
+    
+    private void SaveTopicQuestion(Topic topic)
+    {
+        if (!topicQuestionFormData.ContainsKey(topic.Id)) return;
+        var formData = topicQuestionFormData[topic.Id];
+        
+        if (string.IsNullOrWhiteSpace(formData.Text)) return;
+        
+        if (!editingTopicQuestion.TryGetValue(topic.Id, out var editing) || editing == null)
+        {
+            topic.Questions.Add(formData);
+        }
+        
+        CancelTopicQuestionForm(topic);
+    }
+    
+    private void CancelTopicQuestionForm(Topic topic)
+    {
+        showTopicQuestionForm[topic.Id] = false;
+        editingTopicQuestion[topic.Id] = null;
+        topicQuestionFormData[topic.Id] = CreateNewQuestion();
     }
 
     private void RemoveQuestion(List<Question> questions, Question question)
     {
         questions.Remove(question);
     }
+    
+    #endregion
 
-    // Save methods
+    #region Helper Methods
+    
+    private string GetQuestionTypeLabel(QuestionType type) => type switch
+    {
+        QuestionType.MultipleChoice => "اختيار متعدد",
+        QuestionType.TrueFalse => "صح/خطأ",
+        QuestionType.FillBlank => "ملء الفراغ",
+        QuestionType.Essay => "مقالي",
+        _ => "غير محدد"
+    };
+    
+    private Color GetQuestionTypeBadgeColor(QuestionType type) => type switch
+    {
+        QuestionType.MultipleChoice => Color.Primary,
+        QuestionType.TrueFalse => Color.Success,
+        QuestionType.FillBlank => Color.Warning,
+        QuestionType.Essay => Color.Info,
+        _ => Color.Secondary
+    };
+    
+    #endregion
+
+    #region Save Methods
+    
     private void SaveLesson()
     {
         if (string.IsNullOrWhiteSpace(lesson.Name))
@@ -381,4 +851,19 @@
     {
         NavigationManager.NavigateTo("/lessons");
     }
+    
+    #endregion
+    
+    #region Form Data Helpers
+    
+    private Question GetTopicQuestionFormData(Topic topic)
+    {
+        if (!topicQuestionFormData.ContainsKey(topic.Id))
+        {
+            topicQuestionFormData[topic.Id] = CreateNewQuestion();
+        }
+        return topicQuestionFormData[topic.Id];
+    }
+    
+    #endregion
 }
