@@ -68,7 +68,9 @@
                     <Column ColumnSize="ColumnSize.Is12.OnMobile.Is2.OnDesktop">
                         <Field>
                             <FieldLabel>الحالة</FieldLabel>
-                            <select class="form-select" @bind="lesson.IsActive">
+                            <select class="form-select" 
+                                    value="@(lesson.IsActive ? "true" : "false")"
+                                    @onchange="@(e => lesson.IsActive = e.Value?.ToString() == "true")">
                                 <option value="true">نشط</option>
                                 <option value="false">غير نشط</option>
                             </select>
