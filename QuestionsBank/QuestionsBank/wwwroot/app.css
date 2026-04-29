@@ -409,7 +409,7 @@ label,
     overflow: hidden;
 }
 
-.table > :not(caption) > * > * {
+.table> :not(caption)>*>* {
     vertical-align: middle;
 }
 
