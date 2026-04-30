@@ -73,7 +73,7 @@ public class LessonService
     public void Add(Lesson lesson)
     {
         lesson.Id = Guid.NewGuid();
-        lesson.CreatedAt = DateTime.Now;
+        lesson.CreationTime = DateTime.Now;
         var unit = Units.GetAll().FirstOrDefault(u => u.Id == lesson.UnitId);
         lesson.UnitName = unit.Name ?? "غير محدد";
         _lessons.Add(lesson);
@@ -87,6 +87,7 @@ public class LessonService
             var index = _lessons.IndexOf(existing);
             var unit = Units.GetAll().FirstOrDefault(u => u.Id == lesson.UnitId);
             lesson.UnitName = unit.Name ?? "غير محدد";
+            lesson.LastModificationTime = DateTime.Now;
             _lessons[index] = lesson;
         }
     }
