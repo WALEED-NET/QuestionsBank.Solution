@@ -35,9 +35,16 @@ public class LessonService
                             Points = 2,
                             Options = new List<QuestionOption>
                             {
-                                new() { Text = "مكان في الذاكرة لتخزين البيانات", IsCorrect = true, Order = 1 },
-                                new() { Text = "نوع من الدوال", IsCorrect = false, Order = 2 },
-                                new() { Text = "لغة برمجة", IsCorrect = false, Order = 3 }
+                                new() { 
+                                    Text = "اختر التعريف الصحيح", 
+                                    Order = 1,
+                                    Answers = new List<Answer>
+                                    {
+                                        new() { Text = "مكان في الذاكرة لتخزين البيانات", IsCorrect = true, Order = 1 },
+                                        new() { Text = "نوع من الدوال", IsCorrect = false, Order = 2 },
+                                        new() { Text = "لغة برمجة", IsCorrect = false, Order = 3 }
+                                    }
+                                }
                             }
                         }
                     }

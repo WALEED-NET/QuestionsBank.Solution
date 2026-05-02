@@ -1073,16 +1073,32 @@
         
         foreach (var opt in original.Options)
         {
-            clone.Options.Add(new QuestionOption
+            var clonedOption = new QuestionOption
             {
                 Id = opt.Id,
                 Text = opt.Text,
-                IsCorrect = opt.IsCorrect,
                 Order = opt.Order,
                 AudioUrl = opt.AudioUrl,
                 ImgUrl = opt.ImgUrl,
-                QuestionId = opt.QuestionId
-            });
+                ActivityId = opt.ActivityId
+            };
+            
+            // نسخ الإجابات
+            foreach (var answer in opt.Answers)
+            {
+                clonedOption.Answers.Add(new Answer
+                {
+                    Id = answer.Id,
+                    Text = answer.Text,
+                    IsCorrect = answer.IsCorrect,
+                    Order = answer.Order,
+                    AudioUrl = answer.AudioUrl,
+                    ImgUrl = answer.ImgUrl,
+                    OptionId = answer.OptionId
+                });
+            }
+            
+            clone.Options.Add(clonedOption);
         }
         
         return clone;
@@ -1106,16 +1122,32 @@
         target.Options.Clear();
         foreach (var opt in source.Options)
         {
-            target.Options.Add(new QuestionOption
+            var clonedOption = new QuestionOption
             {
                 Id = opt.Id,
                 Text = opt.Text,
-                IsCorrect = opt.IsCorrect,
                 Order = opt.Order,
                 AudioUrl = opt.AudioUrl,
                 ImgUrl = opt.ImgUrl,
-                QuestionId = opt.QuestionId
-            });
+                ActivityId = opt.ActivityId
+            };
+            
+            // نسخ الإجابات
+            foreach (var answer in opt.Answers)
+            {
+                clonedOption.Answers.Add(new Answer
+                {
+                    Id = answer.Id,
+                    Text = answer.Text,
+                    IsCorrect = answer.IsCorrect,
+                    Order = answer.Order,
+                    AudioUrl = answer.AudioUrl,
+                    ImgUrl = answer.ImgUrl,
+                    OptionId = answer.OptionId
+                });
+            }
+            
+            target.Options.Add(clonedOption);
         }
     }
     

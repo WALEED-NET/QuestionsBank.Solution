@@ -1,17 +1,21 @@
 namespace QuestionsBank.Models;
 
 /// <summary>
-/// خيار الإجابة - يطابق جدول Option في الـ ERD
+/// السؤال الفرعي - يطابق جدول Option في الـ ERD
+/// مثال: "أ- الاسم:" هذا هو السؤال الفرعي
 /// </summary>
 public class QuestionOption
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Text { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty; // نص السؤال الفرعي
     public int Order { get; set; } = 1;
-    public Guid? QuestionId { get; set; } // FK to Question (ActivityId في ERD)
+    public Guid? ActivityId { get; set; } // FK to Question (QuestionBank في ERD)
     public string? AudioUrl { get; set; }
     public string? ImgUrl { get; set; }
     
-    // للإجابة الصحيحة (من جدول Answer في ERD)
-    public bool IsCorrect { get; set; }
+    // Navigation - الإجابات المتاحة لهذا السؤال
+    public List<Answer> Answers { get; set; } = new();
+    
+    // Helper للحصول على الإجابة الصحيحة
+    public Answer? CorrectAnswer => Answers.FirstOrDefault(a => a.IsCorrect);
 }
